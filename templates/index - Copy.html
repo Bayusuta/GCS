@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script src="https://code.jquery.com/jquery.min.js"></script>
+<script>
+    // Running in electron
+    try {
+        $ = jQuery = module.exports;
+        // If you want module.exports to be empty, uncomment:
+        // module.exports = {};
+    } catch(e) {}
+</script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.0/css/ol.css" type="text/css">
+    <style>
+#header { 
+  position: absolute;
+  left: 20px;
+  color: white;
+  z-index: 100;
+  font-family: Sans;
+  margin-top: 20px;
+}
+html, body, .map {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
+.ol-zoom {
+  right: 20px !important;
+  left: initial;
+}
+
+body.disabled {
+  filter: grayscale(100%);
+  -webkit-filter: grayscale(100%);
+  filter: contrast(30%);
+  -webkit-filter: contrast(30%);
+}
+    </style>
+
+    <script>
+window.top.postMessage('gcs', '*');
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.0/build/ol.js" type="text/javascript"></script>
+    <title>Tower for Desktop</title>
+  </head>
+  <body class="disabled">
+    <div id="header">
+      {% if branding %}
+        <h1>Tower</h1>
+      {% endif %}
+      
+      <input type="checkbox" id="toggle-centermap" checked="true" name="toggle_centermap"/>
+      <label for="toggle_centermap">Toggle Center Map</label>
+      
+      <p id="header-state"><b>Armed:</b> ???<br><b>Mode:</b> ??? <br><b>Altitude:</b> ???</p>
+      <p id="coordinate-ping"><b>Latitude:</b> ??? <b>Longitude:</b> ??? </p>
+      <button id="header-arm">ARM and Takeoff</button>
+      <button id="header-mode-loiter">Loiter</button>
+      <button id="header-mode-stabilize">Stabilize</button>
+      <button id="button-add-interaction">Add interaction</button>
+      <button id="button-save-mission">Save mission</button>
+      <button id="log-wp">Log WP</button>
+      <button id="test-goto">Test go-to</button>
+      <button id="button-debug">Debug</button>
+      <!-- <button id="button-set-hone">Set Home</button> -->
+      <button id="button-add-mission">Add Mission</button>
+
+
+    </div>
+    <div id="map" class="map"></div>
+
+    <script type="text/javascript" src="/static/scripts/realtime.js"></script>
+  </body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>jQuery Add / Remove Table Rows Dynamically</title>
+<style>
+    form{
+        margin: 20px 0;
+    }
+    form input, button{
+        padding: 5px;
+    }
+    table{
+        width: 100%;
+        margin-bottom: 20px;
+		border-collapse: collapse;
+    }
+    table, th, td{
+        border: 1px solid #cdcdcd;
+    }
+    table th, table td{
+        padding: 2px;
+        text-align: left;
+    }
+</style>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $(".add-row").click(function(){
+            var markup = "<tr><td><input type=\"checkbox\" name=\"record\"></td><td></td><td></td><td></td><td></td><td></td><td><input type=\"text\" class=\"lat-textbox\" placeholder=\"\"></td><td><input type=\"text\" class=\"lon-textbox\" placeholder=\"\"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>";
+            $("table tbody").append(markup);
+        });
+        
+        // Find and remove selected table rows
+        $(".delete-row").click(function(){
+            $("table tbody").find('input[name="record"]').each(function(){
+            	if($(this).is(":checked")){
+                    $(this).parents("tr").remove();
+                }
+            });
+        });
+
+        $(".debug").click(function(){
+            var lattextbox = document.getElementsByClassName("lat-textbox");
+            console.log(lattextbox);
+            alert(lattextbox[0].value);
+            // alert(lattextbox[0].value);
+        });
+    });    
+</script>
+</head>
+<body>
+    <form>
+        <!-- <input type="text" id="name" placeholder="Name">
+        <input type="text" id="email" placeholder="Email Address"> -->
+    	<input type="button" class="add-row" value="Add Row">
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th>Select</th>
+                <th>Command</th>
+                <th>Delay</th>
+                <th>Param 0</th>
+                <th>Param 1</th>
+                <th>Param 2</th>
+                <th width="100px">Lat</th>
+                <th width="100px">Lon</th>
+                <th>Alt</th>
+                <th>Frame</th>
+                <th>Grad</th>
+                <th>Angle</th>
+                <th>Dist</th>
+                <th>AZ</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="checkbox" name="record"></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td><input type="text" class="lat-textbox" placeholder=""></td>
+                <td><input type="text" class="lon-textbox" placeholder=""></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+    <button type="button" class="delete-row">Delete Row</button>
+    <button type="button" class="debug">Debug</button>
+</body> 
+</html>
