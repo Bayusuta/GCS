@@ -91,6 +91,15 @@ app = Flask(__name__)
 def home():
     return render_template('index.html', branding=False)
 
+@app.route("/marker-overlay")
+def marker_overlay():
+    return render_template('markeroverlay.html', branding=False)
+
+@app.route("/manualmission")
+def manualmission():
+    return render_template('Layout.html', branding=False)
+
+
 listeners_location = []
 listeners_location
 
