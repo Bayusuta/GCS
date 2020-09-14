@@ -12,16 +12,30 @@ var Stroke = ol.style.Stroke;
 var Style = ol.style.Style;
 
 var drawMission = false;
+var drawLine = false;
+
+var draw_line = {active:false, new :false}
+
+var lastCoord = [];
+
 var missionPoints = [];
 
 var savedMissionPoints = [];
+
+var HomePointList = [];
+
+var missionList = [];
+
+// var missionListx = [ [[1,2,3], [1,2,3]] , [[1,3,2], [1,5,5]]];
+// console.table(missionListx);
+
 
 // ----
 
 // --- Add row function --- //
 
-function InsertRow(lon, lat){
-  var markup = "<tr><td><input type=\"checkbox\" name=\"record\"></td><td></td><td></td><td></td><td></td><td></td><td><input type=\"text\" class=\"lat-textbox\" value=\""+lat+"\" placeholder=\"\" oninput=\"latChanged(this)\"></td><td><input type=\"text\" class=\"lon-textbox\" value=\""+lon+"\" placeholder=\"\" oninput=\"lonChanged(this)\"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>";
+function InsertRow(lon, lat) {
+  var markup = "<tr><td><input type=\"checkbox\" name=\"record\"></td><td></td><td></td><td></td><td></td><td></td><td><input type=\"text\" class=\"lat-textbox\" value=\"" + lat + "\" placeholder=\"\" oninput=\"latChanged(this)\"></td><td><input type=\"text\" class=\"lon-textbox\" value=\"" + lon + "\" placeholder=\"\" oninput=\"lonChanged(this)\"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>";
   $("table tbody").append(markup);
 }
 // --- End of Add row function --- //
@@ -66,7 +80,11 @@ var Drag = /*@__PURE__*/ (function(PointerInteraction) {
       * @type {int}
       * @private
       */
-     this.featureIndex_ = null;
+    this.featureIndex_ = null;
+
+    this.featuretype = null;
+
+    this.featureHomeIndex = null;
   }
 
   if (PointerInteraction) Drag.__proto__ = PointerInteraction;
@@ -87,17 +105,57 @@ function handleDownEvent(evt) {
   if (feature) {
     this.coordinate_ = evt.coordinate;
     this.feature_ = feature;
-    
+
+    var geometry = feature.getGeometry();
+    var converted = convertToLonLat(geometry.getCoordinates()[0], geometry.getCoordinates()[1]);
+    var lon = converted[0];
+    var lat = converted[1];
+
     // Identify feature
     console.log("Feature : ");
     console.log(this.feature_);
-  
-    var featureKeys = JSON.parse(JSON.stringify(this.feature_));
-    var i;
 
-    for(i=0; i<savedMissionPoints.length; i++){
-      if(savedMissionPoints[i][0] == featureKeys.ol_uid){
+    var featureKeys = JSON.parse(JSON.stringify(this.feature_));
+
+    // Check if the feature is HomePoint
+    for(var i=0; i<HomePointList.length; i++){
+      if(HomePointList[i][0] == featureKeys.ol_uid){
+        this.featureHomeIndex = i;
+        this.featuretype = "Home";
+
+        $('#features-type').html('<b>Type:</b> Home Point');
+        $('#features-coordinates').html('<b>Latitude:</b> '+lat+'<br> <b>Longitude:</b> '+lon);
+        if(draw_line.active){
+          if(draw_line.new == true){
+            missionList[this.featureHomeIndex] = [];
+            missionList[this.featureHomeIndex].push([lon, lat]);
+            draw_line.new = false;
+          }else{
+            missionList[i].push([lon, lat]);
+            draw_line.active = false;
+            draw_line.new = false;
+            this.featureHomeIndex = null;
+            document.getElementById('button-draw-line').innerHTML = "Draw Line";
+            // alert("Done");
+            UpdateLine();
+            return;
+          }
+        }
+        break;
+      }
+    }
+
+    // Check if the feature is WayPoint
+    for (var i = 0; i < savedMissionPoints.length; i++) {
+      if (savedMissionPoints[i][0] == featureKeys.ol_uid) {
         this.featureIndex_ = i;
+        this.featuretype = "Point";
+        $('#features-type').html('<b>Type:</b> Way Point');
+        $('#features-coordinates').html('<b>Latitude:</b> '+lat+'<br> <b>Longitude:</b> '+lon);
+
+        if(draw_line.active) {
+          missionList[this.featureHomeIndex].push([lon, lat]);
+        }
         console.log("featureIndex_ = " + this.featureIndex_);
       }
     }
@@ -109,24 +167,31 @@ function handleDownEvent(evt) {
   * @param {import("../src/ol/MapBrowserEvent.js").default} evt Map browser event.
   */
 function handleDragEvent(evt) {
-  console.log("handleDragEvent");
+  if (this.featuretype != null) {
 
-  var deltaX = evt.coordinate[0] - this.coordinate_[0];
-  var deltaY = evt.coordinate[1] - this.coordinate_[1];
+    console.log("handleDragEvent");
 
-  var geometry = this.feature_.getGeometry();
-  geometry.translate(deltaX, deltaY);
+    var deltaX = evt.coordinate[0] - this.coordinate_[0];
+    var deltaY = evt.coordinate[1] - this.coordinate_[1];
 
-  this.coordinate_[0] = evt.coordinate[0];
-  this.coordinate_[1] = evt.coordinate[1];
+    var geometry = this.feature_.getGeometry();
+    geometry.translate(deltaX, deltaY);
 
-  var converted = convertToLonLat(geometry.getCoordinates()[0], geometry.getCoordinates()[1]);
-  
-  drawMissionLine();
+    this.coordinate_[0] = evt.coordinate[0];
+    this.coordinate_[1] = evt.coordinate[1];
 
-  if(this.featureIndex_ != null){
-    savedMissionPoints[this.featureIndex_] = [savedMissionPoints[this.featureIndex_][0], converted[0], converted[1]];
-    UpdateTable(this.featureIndex_, converted[0], converted[1]);
+    var converted = convertToLonLat(geometry.getCoordinates()[0], geometry.getCoordinates()[1]);
+    var lon = converted[0];
+    var lat = converted[1];
+
+    if(this.featuretype == "Point"){
+      savedMissionPoints[this.featureIndex_] = [savedMissionPoints[this.featureIndex_][0], lon, lat];
+      // Update circle tho
+      CircleLayerSource.clear();
+      savedMissionPoints.forEach(function(item) {
+        drawCircle(item[1], item[2], 10);
+      });
+    }
   }
 
 }
@@ -136,22 +201,53 @@ function handleDragEvent(evt) {
   */
 function handleMoveEvent(evt) {
   // console.log("handleMoveEvent");
+
+  var pointFeature = false;
+
   if (this.cursor_) {
-
-
     var coords = ol.proj.toLonLat(evt.coordinate);
 
     var lat = coords[1];
     var lon = coords[0];
-  
+
     document.getElementById('coordinate-ping').innerHTML = "<b>Latitude</b>: " + lat + " <b>Longitude</b>: " + lon;;
 
     var map = evt.map;
     var feature = map.forEachFeatureAtPixel(evt.pixel, function(feature) {
       return feature;
     });
+
     var element = evt.map.getTargetElement();
+
     if (feature) {
+      if (draw_line.active){
+        if(!draw_line.new){
+          // Identify feature
+          var featureKeys = JSON.parse(JSON.stringify(feature));
+
+          // Check if the feature is WayPoint or HomePoint
+          for (var i = 0; i < savedMissionPoints.length; i++) {
+            if (savedMissionPoints[i][0] == featureKeys.ol_uid) {
+              pointFeature = true;
+              break;
+            }
+          }
+
+          for(var i=0; i<HomePointList.length; i++){
+            if(HomePointList[i][0] == featureKeys.ol_uid){
+              pointFeature = true;
+              break;
+            }
+          }
+
+          if (pointFeature) {
+            var geometry = feature.getGeometry();
+            var converted = convertToLonLat(geometry.getCoordinates()[0], geometry.getCoordinates()[1]);    
+            lon = converted[0];
+            lat = converted[1];    
+          }
+        }
+      }
       if (element.style.cursor != this.cursor_) {
         this.previousCursor_ = element.style.cursor;
         element.style.cursor = this.cursor_;
@@ -160,6 +256,14 @@ function handleMoveEvent(evt) {
       element.style.cursor = this.previousCursor_;
       this.previousCursor_ = undefined;
     }
+    // Draw Line
+
+    if(draw_line.active && draw_line.new == false){
+      missionList[this.featureHomeIndex].push([lon, lat]);
+      UpdateLine();
+      missionList[this.featureHomeIndex].pop();
+    }
+
   }
 }
 
@@ -171,6 +275,8 @@ function handleUpEvent() {
   this.coordinate_ = null;
   this.feature_ = null;
   this.featureIndex_ = null;
+  this.featuretype = null;
+  // this.featureHomeIndex = null;
   return false;
 }
 
@@ -178,7 +284,9 @@ function handleUpEvent() {
 
 // -- YELLOW POINT LAYER -- //
 
-var PLSource = new ol.source.Vector({ features: [] });
+var PLSource = new ol.source.Vector({
+  features: []
+});
 
 var PointLayer = new ol.layer.Vector({
   source: PLSource,
@@ -204,8 +312,10 @@ var PointLayer = new ol.layer.Vector({
 
 // -- GREEN POINT HOME LAYER -- //
 
-var PointHomeFeature = new Feature(new Point(ol.proj.transform([149.16522721779103, -35.363376928881884], 'EPSG:4326', 'EPSG:3857')));
-var PointHomeLayerSource = new ol.source.Vector({ features: [PointHomeFeature] });
+
+var PointHomeLayerSource = new ol.source.Vector({
+  features: []
+});
 
 var PointHomeLayer = new ol.layer.Vector({
   source: PointHomeLayerSource,
@@ -231,24 +341,27 @@ var PointHomeLayer = new ol.layer.Vector({
 
 // -- CIRCLE LAYER -- //
 
-var CircleLayerSource = new ol.source.Vector({ projection: 'EPSG:4326' ,features: [] });
+var CircleLayerSource = new ol.source.Vector({
+  projection: 'EPSG:4326',
+  features: []
+});
 var CircleStyle = new ol.style.Style({
   fill: new ol.style.Fill({
-      color: 'rgba(255, 100, 50, 0.3)'
+    color: 'rgba(255, 100, 50, 0.3)'
   }),
   stroke: new ol.style.Stroke({
-      width: 2,
-      color: 'rgba(255, 100, 50, 0.8)'
+    width: 2,
+    color: 'rgba(255, 100, 50, 0.8)'
   }),
   image: new ol.style.Circle({
-      fill: new ol.style.Fill({
-          color: 'rgba(55, 200, 150, 0.5)'
-      }),
-      stroke: new ol.style.Stroke({
-          width: 1,
-          color: 'rgba(55, 200, 150, 0.8)'
-      }),
-      radius: 7
+    fill: new ol.style.Fill({
+      color: 'rgba(55, 200, 150, 0.5)'
+    }),
+    stroke: new ol.style.Stroke({
+      width: 1,
+      color: 'rgba(55, 200, 150, 0.8)'
+    }),
+    radius: 7
   }),
 });
 
@@ -259,12 +372,28 @@ var CircleLayer = new ol.layer.Vector({
 
 // -- END OF CIRCLE LAYER -- //
 
+// -- ADD HOME POINT -- //
+
+function addHomePoint(lon, lat){
+  var PointHomeFeature = new Feature(new Point(ol.proj.transform([lon, lat], 'EPSG:4326', 'EPSG:3857')));
+  
+  missionList.push([]);
+  HomePointList.push([JSON.parse(JSON.stringify(PointHomeFeature)).ol_uid, lon, lat]);
+  PointHomeLayerSource.addFeature(PointHomeFeature);  
+}
+
+addHomePoint(112.79758155388635, -7.2772675487336045);
+addHomePoint(112.79817163986962, -7.27737929405518);
+
+// -- END OF ADD HOME POINT -- //
+
 // -- PUSH PointLayer source -- //
 
-function addPointLayerSource(lon, lat){
+function addPointLayerSource(lon, lat) {
   var newFeature = new Feature(new Point(ol.proj.transform([lon, lat], 'EPSG:4326', 'EPSG:3857')));
   // console.log(JSON.parse(JSON.stringify(newFeature)).ol_uid);
   PLSource.addFeature(newFeature);
+  drawCircle(lon, lat, 10);
 
   savedMissionPoints.push([JSON.parse(JSON.stringify(newFeature)).ol_uid, lon, lat]);
   // return JSON.parse(JSON.stringify(newFeature)).ol_uid;
@@ -290,7 +419,7 @@ var missionvectorLineLayer = new ol.layer.Vector({
 
 // -- TRANSFORM FUNCTION -- //
 
-function convertToLonLat(x, y){
+function convertToLonLat(x, y) {
   return ol.proj.transform([x, y], 'EPSG:3857', 'EPSG:4326');
 }
 
@@ -300,11 +429,11 @@ function convertFromLongLat(long, lat) {
 
 // -- TRANSFORM FUNCTION -- //
 
-function drawMissionLine(){
+function drawMissionLine() {
   // console.log("drawMissionLine");
   var missionPoints_ = [];
 
-  savedMissionPoints.forEach(function(item){
+  savedMissionPoints.forEach(function(item) {
     missionPoints_.push([item[1], item[2]]);
   });
 
@@ -317,7 +446,7 @@ function drawMissionLine(){
   for (var i = 0; i < missionPoints_.length; i++) {
     missionPoints_[i] = ol.proj.transform(missionPoints_[i], 'EPSG:4326', 'EPSG:3857');
   }
-  
+
   var missionfeatureLine = new ol.Feature({
     geometry: new ol.geom.LineString(missionPoints_)
   });
@@ -326,45 +455,32 @@ function drawMissionLine(){
   missionvectorLineSource.addFeature(missionfeatureLine);
 
   CircleLayerSource.clear();
-  savedMissionPoints.forEach(function(item){
+  savedMissionPoints.forEach(function(item) {
     drawCircle(item[1], item[2], 10);
   });
 }
 
 // -- DRAW LINE FROM ADD-MISSION BUTTON
 
-// -- REALTIME TABLE LON-LAT
-
-function UpdateTable(rowIndex, lon, lat){
-  var lattextbox = document.getElementsByClassName("lat-textbox");
-  var lontextbox = document.getElementsByClassName("lon-textbox");
-  // console.log(lattextbox);
-  lattextbox[rowIndex].value = lat;
-  lontextbox[rowIndex].value = lon;
-  // alert(lattextbox[0].value);
-}
-
-// -- END OF REALTIME TABLE LON-LAT
-
 // -- INPUT LON-LAT TEXTCHANGED -- //
 
-function latChanged(input){
+function latChanged(input) {
 
   var index = input.parentElement.parentElement.rowIndex - 1;
   var ol_uid = savedMissionPoints[index][0];
 
-  var lat=input.value;
-  var lon=savedMissionPoints[index][1];
+  var lat = input.value;
+  var lon = savedMissionPoints[index][1];
 
   savedMissionPoints[index] = [ol_uid, lon, lat];
 
-  var coordinates = convertFromLongLat(lon,lat);
+  var coordinates = convertFromLongLat(lon, lat);
 
-  PLSource.forEachFeature(function(feature){
+  PLSource.forEachFeature(function(feature) {
 
     var featureKeys = JSON.parse(JSON.stringify(feature));
 
-    if(ol_uid == featureKeys.ol_uid){
+    if (ol_uid == featureKeys.ol_uid) {
       feature.getGeometry().setCoordinates(coordinates);
     }
   });
@@ -372,23 +488,23 @@ function latChanged(input){
   drawMissionLine();
 }
 
-function lonChanged(input){
+function lonChanged(input) {
 
   var index = input.parentElement.parentElement.rowIndex - 1;
   var ol_uid = savedMissionPoints[index][0];
 
-  var lat=savedMissionPoints[index][2];
-  var lon=input.value;
+  var lat = savedMissionPoints[index][2];
+  var lon = input.value;
 
   savedMissionPoints[index] = [ol_uid, lon, lon];
 
-  var coordinates = convertFromLongLat(lon,lat);
+  var coordinates = convertFromLongLat(lon, lat);
 
-  PLSource.forEachFeature(function(feature){
+  PLSource.forEachFeature(function(feature) {
 
     var featureKeys = JSON.parse(JSON.stringify(feature));
 
-    if(ol_uid == featureKeys.ol_uid){
+    if (ol_uid == featureKeys.ol_uid) {
       feature.getGeometry().setCoordinates(coordinates);
     }
   });
@@ -414,9 +530,9 @@ var map = new ol.Map({
   interactions: ol.interaction.defaults().extend([new Drag()]),
   target: 'map',
   renderer: 'canvas', // Force the renderer to be used
-  layers: [raster,CircleLayer, missionvectorLineLayer, PointLayer, PointHomeLayer],
+  layers: [raster, CircleLayer, missionvectorLineLayer, PointLayer, PointHomeLayer],
   view: new ol.View({
-    center: ol.proj.transform([-122.3020636, 37.8732388], 'EPSG:4326', 'EPSG:3857'),
+    center: ol.proj.transform([112.79816627545159, -7.277397918272769], 'EPSG:4326', 'EPSG:3857'),
     zoom: 18
   })
 });
@@ -443,7 +559,7 @@ function getCoordsDistance(firstPoint, secondPoint, projection) {
 
 // -- DRAW CIRCLE -- //
 
-function drawCircle(lon, lat, radius){
+function drawCircle(lon, lat, radius) {
   // var view = map.getView();
   // var projection = view.getProjection();
   // var resolutionAtEquator = view.getResolution();
@@ -460,33 +576,46 @@ function drawCircle(lon, lat, radius){
   CircleLayerSource.addFeature(circleFeature);
 }
 
-// var drawCircleInMeter = function(map, radius) {
-//   var view = map.getView();
-//   var projection = view.getProjection();
-//   var resolutionAtEquator = view.getResolution();
-//   var center = map.getView().getCenter();
-//   var pointResolution = projection.getPointResolution(resolutionAtEquator, center);
-//   var resolutionFactor = resolutionAtEquator/pointResolution;
-//   var radius = (radius / ol.proj.METERS_PER_UNIT.m) * resolutionFactor;
-
-
-//   var circle = new ol.geom.Circle(center, radius);
-//   var circleFeature = new ol.Feature(circle);
-
-//   // Source and vector layer
-//   var vectorSource = new ol.source.Vector({
-//       projection: 'EPSG:4326'
-//   });
-//   vectorSource.addFeature(circleFeature);
-//   var vectorLayer = new ol.layer.Vector({
-//       source: vectorSource
-//   });
-
-//   map.addLayer(vectorLayer);
-// }
-
-
 // -- END OF DRAW CIRCLE -- //
+
+// -- UPDATE DRAW LINE FUNCTION -- //
+
+function UpdateLine(){
+  missionvectorLineSource.clear();
+
+  for(var i=0; i<missionList.length; i++){
+    var missionPoints_ = [];
+
+    for(var j=0; j<missionList[i].length; j++){
+      missionPoints_.push([missionList[i][j][0], missionList[i][j][1]]);
+    }
+
+    for (var k = 0; k < missionPoints_.length; k++) {
+      missionPoints_[k] = ol.proj.transform(missionPoints_[k], 'EPSG:4326', 'EPSG:3857');
+    }
+
+    var missionfeatureLine = new ol.Feature({
+      geometry: new ol.geom.LineString(missionPoints_)
+    });
+    
+    missionvectorLineSource.addFeature(missionfeatureLine);
+  }
+
+  // missionList.forEach(function(mission){
+  //   var missionPoints_ = [];
+  //   mission.foreach(function(item){
+  //     missionPoints_.push(convertFromLongLat([item[0], item[1]]));
+  //   });
+
+  //   var missionfeatureLine = new ol.Feature({
+  //     geometry: new ol.geom.LineString(missionPoints_)
+  //   });
+    
+  //   missionvectorLineSource.addFeature(missionfeatureLine);
+  // });
+}
+
+// -- END OF UPDATE  DRAW LINE FUNCTION -- //
 
 // Create an image layer
 var FUDGE = 0.0005;
@@ -596,11 +725,11 @@ function createMission() {
   var text = "QGC WPL 110\n";
   // HOME POINT
   var convertedHomePoints = ol.proj.transform([PointHomeFeature.getGeometry().getCoordinates()[0], PointHomeFeature.getGeometry().getCoordinates()[1]], 'EPSG:3857', 'EPSG:4326');
-  text += "0\t1\t0\t16\t0\t0\t0\t0\t"+convertedHomePoints[1]+"\t"+convertedHomePoints[0]+"\t583.989990\t1\n";
+  text += "0\t1\t0\t16\t0\t0\t0\t0\t" + convertedHomePoints[1] + "\t" + convertedHomePoints[0] + "\t583.989990\t1\n";
 
   var missionPoints_ = [];
 
-  PLSource.forEachFeature(function(feature){
+  PLSource.forEachFeature(function(feature) {
     var convertedWpoints = ol.proj.transform([feature.getGeometry().getCoordinates()[0], feature.getGeometry().getCoordinates()[1]], 'EPSG:3857', 'EPSG:4326');
     missionPoints_.unshift([convertedWpoints[0], convertedWpoints[1]]);
   });
@@ -649,7 +778,7 @@ $('#button-debug').on('click', function() {
   // PLSource.forEachFeature(function(feature){
   //   // var converted = ol.proj.transform([feature.getGeometry().getCoordinates()[0], feature.getGeometry().getCoordinates()[1]], 'EPSG:3857', 'EPSG:4326');
   //   // console.log(converted);
-    
+
   //   var coords = convertFromLongLat(149.16316459905855,-35.363702841261755);
 
   //   feature.getGeometry().setCoordinates(coords);
@@ -666,27 +795,46 @@ $('#button-add-mission').on('click', function() {
   if (document.getElementById("button-add-mission").innerHTML == "Add Mission") {
     document.getElementById('button-add-mission').innerHTML = "Done";
 
-    missionPoints = [];
-    var convertedHomePoints = ol.proj.transform([PointHomeFeature.getGeometry().getCoordinates()[0], PointHomeFeature.getGeometry().getCoordinates()[1]], 'EPSG:3857', 'EPSG:4326');
-    missionPoints.push([convertedHomePoints[0], convertedHomePoints[1]]);
+    // missionPoints = [];
+    // var convertedHomePoints = ol.proj.transform([PointHomeFeature.getGeometry().getCoordinates()[0], PointHomeFeature.getGeometry().getCoordinates()[1]], 'EPSG:3857', 'EPSG:4326');
+    // missionPoints.push([convertedHomePoints[0], convertedHomePoints[1]]);
 
     drawMission = true;
 
   } else {
     document.getElementById('button-add-mission').innerHTML = "Add Mission";
-    var convertedHomePoints = ol.proj.transform([PointHomeFeature.getGeometry().getCoordinates()[0], PointHomeFeature.getGeometry().getCoordinates()[1]], 'EPSG:3857', 'EPSG:4326');
-    missionPoints.push([convertedHomePoints[0], convertedHomePoints[1]]);
-    
+    // var convertedHomePoints = ol.proj.transform([PointHomeFeature.getGeometry().getCoordinates()[0], PointHomeFeature.getGeometry().getCoordinates()[1]], 'EPSG:3857', 'EPSG:4326');
+    // missionPoints.push([convertedHomePoints[0], convertedHomePoints[1]]);
+
     drawMission = false;
   }
 });
 
-// Add Row
-$(".add-row").click(function(){
-  var lon = savedMissionPoints[savedMissionPoints.length -1][1];
-  var lat = savedMissionPoints[savedMissionPoints.length -1][2];
 
-  addPointLayerSource(lon,lat);  
+// Draw Line
+$('#button-draw-line').on('click', function() {
+  if (document.getElementById("button-draw-line").innerHTML == "Draw Line") {
+    document.getElementById('button-draw-line').innerHTML = "Done";
+    alert("Please select Home Point first");
+    
+    draw_line.active = true;
+    draw_line.new = true;
+    
+  } else {
+    document.getElementById('button-draw-line').innerHTML = "Draw Line";
+    // alert("Done");
+    UpdateLine();
+    draw_line.active = false;
+    draw_line.new = false;
+  }
+});
+
+// Add Row
+$(".add-row").click(function() {
+  var lon = savedMissionPoints[savedMissionPoints.length - 1][1];
+  var lat = savedMissionPoints[savedMissionPoints.length - 1][2];
+
+  addPointLayerSource(lon, lat);
   InsertRow(lon, lat);
   drawMissionLine();
 
@@ -694,12 +842,12 @@ $(".add-row").click(function(){
 
 // Delete Row
 // Find and remove selected table rows
-$(".delete-row").click(function(){
-  var i=0;
+$(".delete-row").click(function() {
+  var i = 0;
 
   var listIndexToRemove = [];
-  $("table tbody").find('input[name="record"]').each(function(){
-    if($(this).is(":checked")){
+  $("table tbody").find('input[name="record"]').each(function() {
+    if ($(this).is(":checked")) {
       // console.log(i);
       listIndexToRemove.push(i);
       $(this).parents("tr").remove();
@@ -707,8 +855,8 @@ $(".delete-row").click(function(){
     i++;
   });
 
-  for(i=0; i<listIndexToRemove.length; i++){
-    savedMissionPoints.splice(listIndexToRemove[i]-i,1);
+  for (i = 0; i < listIndexToRemove.length; i++) {
+    savedMissionPoints.splice(listIndexToRemove[i] - i, 1);
   }
 
   console.table(savedMissionPoints);
@@ -717,8 +865,8 @@ $(".delete-row").click(function(){
 
   savedMissionPoints = [];
   PLSource.clear();
-  
-  for(i=0; i<duplicate_savedMissionPoints.length; i++){
+
+  for (i = 0; i < duplicate_savedMissionPoints.length; i++) {
     addPointLayerSource(duplicate_savedMissionPoints[i][1], duplicate_savedMissionPoints[i][2]);
   }
 
@@ -734,7 +882,7 @@ source.onmessage = function(event) {
   if (!globmsg) {
     console.log('FIRST', msg);
     $('body').removeClass('disabled')
-    map.getView().setCenter(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
+    // map.getView().setCenter(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
   }
   globmsg = msg;
 
@@ -762,12 +910,10 @@ map.on('click', function(evt) {
   var lat = coords[1];
   var lon = coords[0];
 
-  if(drawMission == true){
-    addPointLayerSource(lon,lat);  
+  if (drawMission == true) {
+    addPointLayerSource(lon, lat);
     InsertRow(lon, lat);
-    // drawCircle(lon, lat, 10);
 
-    drawMissionLine();
   }
 
   var locTxt = "<b>Latitude</b>: " + lat + " <b>Longitude</b>: " + lon;
