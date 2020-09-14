@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script src="https://code.jquery.com/jquery.min.js"></script>
+<script>
+    // Running in electron
+    try {
+        $ = jQuery = module.exports;
+        // If you want module.exports to be empty, uncomment:
+        // module.exports = {};
+    } catch(e) {}
+</script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.0/css/ol.css" type="text/css">
+    <style>
+#header { 
+  position: absolute;
+  left: 20px;
+  color: white;
+  z-index: 100;
+  font-family: Sans;
+  margin-top: 20px;
+}
+html, body{
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
+.map{
+  margin: 0;
+  padding: 0;
+  height: 700px;
+  width: 100%;
+}
+.ol-zoom {
+  right: 20px !important;
+  left: initial;
+}
+
+body.disabled {
+  filter: grayscale(100%);
+  -webkit-filter: grayscale(100%);
+  filter: contrast(30%);
+  -webkit-filter: contrast(30%);
+}
+    </style>
+<style>
+  form{
+      margin: 20px 0;
+  }
+  form input, button{
+      padding: 5px;
+  }
+  table{
+      width: 100%;
+      margin-bottom: 20px;
+  border-collapse: collapse;
+  }
+  table, th, td{
+      border: 1px solid #cdcdcd;
+  }
+  table th, table td{
+      padding: 2px;
+      text-align: left;
+  }
+</style>
+    <script>
+window.top.postMessage('gcs', '*');
+    </script>
+<!-- <script>
+    $(document).ready(function(){
+        $(".add-row").click(function(){
+            var markup = "<tr><td><input type=\"checkbox\" name=\"record\"></td><td></td><td></td><td></td><td></td><td></td><td><input type=\"text\" class=\"lat-textbox\" placeholder=\"\"></td><td><input type=\"text\" class=\"lon-textbox\" placeholder=\"\"></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>";
+            $("table tbody").append(markup);
+        });
+    });
+</script> -->
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.0/build/ol.js" type="text/javascript"></script>
+    <title>Tower for Desktop</title>
+  </head>
+  <body class="disabled">
+    <div id="header">
+      {% if branding %}
+        <h1>Tower</h1>
+      {% endif %}
+      <input type="checkbox" id="toggle-centermap" name="toggle_centermap"/>
+      <label for="toggle_centermap">Toggle Center Map</label>
+      <p id="header-state"><b>Armed:</b> ???<br><b>Mode:</b> ??? <br><b>Altitude:</b> ???</p>
+      <p id="coordinate-ping"><b>Latitude:</b> ??? <b>Longitude:</b> ??? </p>
+      <button id="header-arm">ARM and Takeoff</button>
+      <button id="header-mode-loiter">Loiter</button>
+      <button id="header-mode-stabilize">Stabilize</button>
+      <!-- <button id="button-add-interaction">Add interaction</button> -->
+      <button id="button-save-mission">Save mission</button>
+      <!-- <button id="log-wp">Log WP</button> -->
+      <button id="test-goto">Test go-to</button>
+      <button id="button-debug">Debug</button>
+      <!-- <button id="button-set-hone">Set Home</button> -->
+      <button id="button-add-mission">Add Mission</button>
+      <button id="button-draw-line">Draw Line</button>
+    </div>
+    <div id="map" class="map"></div>
+    <div id="mission" class="mission">
+      <form>
+        <input type="button" class="add-row" value="Add Row">
+      </form>
+      <table>
+          <thead>
+              <tr>
+                  <th>Select</th>
+                  <th>Command</th>
+                  <th>Delay</th>
+                  <th>Param 0</th>
+                  <th>Param 1</th>
+                  <th>Param 2</th>
+                  <th width="100px">Lat</th>
+                  <th width="100px">Lon</th>
+                  <th>Alt</th>
+                  <th>Frame</th>
+                  <th>Grad</th>
+                  <th>Angle</th>
+                  <th>Dist</th>
+                  <th>AZ</th>
+              </tr>
+          </thead>
+          <tbody>
+          </tbody>
+      </table>
+      <button type="button" class="delete-row">Delete Row</button>
+      <button type="button" class="debug">Debug</button>
+    </div>
+
+    <script type="text/javascript" src="/static/scripts/manualrealtime.js"></script>
+  </body>
+</html>
