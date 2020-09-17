@@ -21,7 +21,7 @@ import dronekit_sitl as sim
 sitl                = sim.start_default()
 connection_string   = sitl.connection_string()
 
-
+vehicles = []
 vehicle = None
 
 # Allow us to reuse sockets after the are bound.
@@ -35,51 +35,52 @@ socket.socket.bind = my_socket_bind
 def sse_encode(obj, id=None):
     return "data: %s\n\n" % json.dumps(obj)
 
-def state_msg():
-    if vehicle.location.global_relative_frame.lat == None:
+def state_msg(id):
+    if vehicles[id].location.global_relative_frame.lat == None:
         raise Exception('no position info')
-    if vehicle.armed == None:
+    if vehicles[id].armed == None:
         raise Exception('no armed info')
     return {
-        "armed": vehicle.armed,
-        "alt": vehicle.location.global_relative_frame.alt,
-        "mode": vehicle.mode.name,
-        "heading": vehicle.heading or 0,
-        "lat": vehicle.location.global_relative_frame.lat,
-        "lon": vehicle.location.global_relative_frame.lon
+        "id": vehicles[id].id,
+        "armed": vehicles[id].armed,
+        "alt": vehicles[id].location.global_relative_frame.alt,
+        "mode": vehicles[id].mode.name,
+        "heading": vehicles[id].heading or 0,
+        "lat": vehicles[id].location.global_relative_frame.lat,
+        "lon": vehicles[id].location.global_relative_frame.lon
     }
 
-def arm_and_takeoff(aTargetAltitude):
+def arm_and_takeoff(aTargetAltitude, id):
     """
     Arms vehicle and fly to aTargetAltitude.
     """
 
     print("Basic pre-arm checks")
     # Don't try to arm until autopilot is ready
-    while not vehicle.is_armable:
+    while not vehicles[id].is_armable:
         print(" Waiting for vehicle to initialise...")
         time.sleep(1)
 
     print("Arming motors")
     # Copter should arm in GUIDED mode
-    vehicle.mode = VehicleMode("GUIDED")
-    vehicle.armed = True
+    vehicles[id].mode = VehicleMode("GUIDED")
+    vehicles[id].armed = True
 
     # Confirm vehicle armed before attempting to take off
-    while not vehicle.armed:
+    while not vehicles[id].armed:
         print(" Waiting for arming...")
         time.sleep(1)
 
     print("Taking off!")
-    vehicle.simple_takeoff(aTargetAltitude)  # Take off to target altitude
+    vehicles[id].simple_takeoff(aTargetAltitude)  # Take off to target altitude
 
     # Wait until the vehicle reaches a safe height before processing the goto
     #  (otherwise the command after Vehicle.simple_takeoff will execute
     #   immediately).
     while True:
-        print(" Altitude: ", vehicle.location.global_relative_frame.alt)
+        print(" Altitude: ", vehicles[id].location.global_relative_frame.alt)
         # Break and return from function just below target altitude.
-        if vehicle.location.global_relative_frame.alt >= aTargetAltitude * 0.95:
+        if vehicles[id].location.global_relative_frame.alt >= aTargetAltitude * 0.95:
             print("Reached target altitude")
             break
         time.sleep(1)
@@ -109,9 +110,10 @@ def tcount():
     while True:
         time.sleep(0.25)
         try:
-            msg = state_msg()
-            for x in listeners_location:
-                x.put(msg)
+            for vehicle in vehicles:
+                msg = state_msg(vehicle.id)
+                for x in listeners_location:
+                    x.put(msg)
         except Exception as e:
             pass
 t = Thread(target=tcount)
@@ -152,7 +154,8 @@ def api_sse_location():
 def api_location():
     if request.method == 'POST' or request.method == 'PUT':
         try:
-            arm_and_takeoff(int(request.json['alt']))
+            id = int(request.json['id'])
+            arm_and_takeoff(int(request.json['alt']), id)
             # vehicle.armed = True
             # vehicle.flush()
             return jsonify(ok=True)
@@ -164,8 +167,9 @@ def api_location():
 def api_mode():
     if request.method == 'POST' or request.method == 'PUT':
         try:
-            vehicle.mode = VehicleMode(request.json['mode'].upper())
-            vehicle.flush()
+            id = int(request.json['id'])
+            vehicles[id].mode = VehicleMode(request.json['mode'].upper())
+            vehicles[id].flush()
             return jsonify(ok=True)
         except Exception as e:
             print(e)
@@ -175,13 +179,14 @@ def api_mode():
 def api_goto():
     if request.method == 'POST' or request.method == 'PUT':
         try:
+            id = int(request.json['id'])
             waypoints=request.json['waypoints']
             print("Set default/target airspeed to 3")
-            vehicle.airspeed = 3
+            vehicles[id].airspeed = 3
             for xy in waypoints:
                 print("Going to : lat ", xy[1] , " long : " , xy[0])
                 waypoint = LocationGlobalRelative(float(xy[1]), float(xy[0]), 20)
-                vehicle.simple_goto(waypoint)
+                vehicles[id].simple_goto(waypoint)
                 time.sleep(30)
 
             # vehicle.mode = VehicleMode(request.json['mode'].upper())
@@ -191,21 +196,50 @@ def api_goto():
             print(e)
             return "failed"
 
-def connect_to_drone():
-    global vehicle
-
-    print('connecting to drone...')
-    while not vehicle:
+@app.route("/api/connect", methods=['POST','PUT'])
+def api_connect():
+    if request.method =='POST' or request.method == 'PUT':
         try:
-            vehicle = connect(connection_string, wait_ready=True, rate=10)
+            addr = request.json['addr']
+            baudrate = request.json['baudrate']
+            id = int(request.json['id'])
+            print('connecting to drone...')
+            nvehicle = None
+            # connection_string = str(addr) + ":" + str(baud) 
+            c=0
+            while not nvehicle and c<5:
+                try:
+                    nvehicle = connect(str(addr), wait_ready=True, baud=int(baudrate))
+                    nvehicle.id = id
+                    vehicles.append(nvehicle)
+                    vehicles[id].parameters['ARMING_CHECK'] = 1
+                    vehicles[id].flush()
+
+                    print("Vehicle Connected")
+                except Exception as e:
+                    print('waiting for connection... (%s)' % str(e))
+                    c+=1
+                    time.sleep(2)
+        except Exception as e:
+            print(e)
+            return "Failed to Connect to Vehicle..."
+
+def connect_to_drone():
+    global vehicles#
+    nvehicle = None#
+    print('connecting to drone...')
+    while not nvehicle:
+        try:
+            nvehicle = connect(connection_string, wait_ready=True, rate=10)
+            nvehicle.id = 1 #
+            vehicles.append(nvehicle)#
         except Exception as e:
             print('waiting for connection... (%s)' % str(e))
             time.sleep(2)
-
     # if --sim is enabled...
     # vehicle.mode = VehicleMode("GUIDED")
-    vehicle.parameters['ARMING_CHECK'] = 1
-    vehicle.flush()
+    vehicles[0].parameters['ARMING_CHECK'] = 1
+    vehicles[0].flush()
 
     print('connected!')
 
@@ -218,9 +252,9 @@ def never_cache(response):
     response.headers['Expires'] = '-1'
     return response
 
-t2 = Thread(target=connect_to_drone)
-t2.daemon = True
-t2.start()
+# t2 = Thread(target=connect_to_drone)
+# t2.daemon = True
+# t2.start()
 
 def main():
     app.run(threaded=True, host='127.0.0.1', port=5000)

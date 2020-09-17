@@ -540,7 +540,8 @@ $('#header-arm').on('click', function() {
       contentType: 'application/json',
       data: JSON.stringify({
         arm: true,
-        alt: altitude
+        alt: altitude,
+        id: 0
       }),
     })
     .done(function(msg) {
@@ -554,7 +555,8 @@ $('#header-mode-loiter').on('click', function() {
       url: '/api/mode',
       contentType: 'application/json',
       data: JSON.stringify({
-        mode: 'LOITER'
+        mode: 'LOITER',
+        id: 0
       }),
     })
     .done(function(msg) {
@@ -568,7 +570,8 @@ $('#header-mode-stabilize').on('click', function() {
       url: '/api/mode',
       contentType: 'application/json',
       data: JSON.stringify({
-        mode: 'STABILIZE'
+        mode: 'STABILIZE',
+        id: 0
       }),
     })
     .done(function(msg) {
@@ -584,7 +587,8 @@ $('#test-goto').on('click', function() {
   //     url: '/api/goto',
   //     contentType: 'application/json',
   //     data: JSON.stringify({
-  //       waypoints: wp
+  //       waypoints: wp,
+  //       id: 0
   //     }),
   //   })
   //   .done(function(msg) {
@@ -679,6 +683,23 @@ $('#button-add-mission').on('click', function() {
     
     drawMission = false;
   }
+});
+
+//Connect vehicle
+$('#button-connect-vehicle').on('click', function(){
+  $.ajax({
+    method: 'PUT',
+    url: '/api/connect',
+    contentType: 'application/json',
+    data: JSON.stringify({
+      addr: 'COM3', /*address masih manual*/
+      baudrate: '115200',
+      id: '0'
+    }),
+  })
+  .done(function(msg) {
+    console.log('sent mode change')
+  });
 });
 
 // Add Row
