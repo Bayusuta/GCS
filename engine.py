@@ -90,7 +90,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return render_template('index.html', branding=False)
+    return render_template('status.html', branding=False)
 
 @app.route("/marker-overlay")
 def marker_overlay():

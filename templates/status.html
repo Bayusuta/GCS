@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zxx">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/static/images/basic/favicon.ico" type="image/x-icon">
+    <title>Bayusuta</title>
+    <!-- CSS -->
+    <link rel="stylesheet" href="/static/scripts/css/app.css">
+    <style>
+        .loader {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #F5F8FA;
+            z-index: 9998;
+            text-align: center;
+        }
+
+        .plane-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+        }
+    </style>
+    <!-- Js -->
+    <script>(function(w,d,u){w.readyQ=[];w.bindReadyQ=[];function p(x,y){if(x=="ready"){w.bindReadyQ.push(y);}else{w.readyQ.push(x);}};var a={ready:p,bind:p};w.$=w.jQuery=function(f){if(f===d||f===u){return a}else{p(f)}}})(window,document)</script>
+</head>
+<body class="light sidebar-mini sidebar-collapsex sidebar-expanded-on-hoverx">
+<!-- Pre loader -->
+<div id="loader" class="loader">
+    <div class="plane-container">
+        <div class="preloader-wrapper small active">
+            <div class="spinner-layer spinner-blue">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                <div class="circle"></div>
+            </div><div class="circle-clipper right">
+                <div class="circle"></div>
+            </div>
+            </div>
+
+            <div class="spinner-layer spinner-red">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                <div class="circle"></div>
+            </div><div class="circle-clipper right">
+                <div class="circle"></div>
+            </div>
+            </div>
+
+            <div class="spinner-layer spinner-yellow">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                <div class="circle"></div>
+            </div><div class="circle-clipper right">
+                <div class="circle"></div>
+            </div>
+            </div>
+
+            <div class="spinner-layer spinner-green">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                <div class="circle"></div>
+            </div><div class="circle-clipper right">
+                <div class="circle"></div>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="app">
+    <aside class="main-sidebar fixed offcanvas b-r sidebar-tabs" data-toggle='offcanvas'>
+        <div class="sidebar">
+            <div class="d-flex hv-100 align-items-stretch">
+                <div class="indigo text-white">
+                    <div class="nav mt-5 pt-5 flex-column nav-pills" id="v-pills-tab" role="tablist"
+                         aria-orientation="vertical">
+                        <a class="nav-link" href="" aria-selected="true"><i class="icon-map"></i><h6 style="font-size: 8px">PLAN</h6></a>
+                        <a class="nav-link active" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab"
+                           aria-controls="v-pills-profile" aria-selected="false"><i class="icon-plane"></i><h6 style="font-size: 8px">STATUS</h6></a>
+                        <a class="nav-link" href="" aria-selected="false"><i class="icon-refresh"></i><h6 style="font-size: 8px">CALIBRATE</h6></a>
+                        <a class="nav-link" href="" aria-selected="false"><i class="icon-settings2"></i><h6 style="font-size: 8px">SETTING</h6></a>
+                        <a class="nav-link" href="" aria-selected="false"><i class="icon-help"></i><h6 style="font-size: 8px">HELP</h6></a>
+                    </div>
+                </div>
+                <div class="tab-content flex-grow-1" id="v-pills-tabContent">
+                    <div class="tab-pane fade show active" id="v-pills-profile" role="tabpanel" aria-labelledby="v-pills-profile-tab">
+                        <div class="relative brand-wrapper sticky b-b p-3 blink bg-danger">
+                        <!--<div class="relative brand-wrapper sticky b-b p-3 blink bg-success">-->
+                            <center><h2 class="text-white">DISCONNECTED</h2></center>
+                            <!--<center><h2 class="text-white">CONNECTED</h2></center>-->
+                        </div>
+                        <div class="sticky slimScroll">
+                            <div class="p-2">
+                                <ul class="list-unstyled">
+                                    <!-- Single contact -->
+                                    <li class="my-1">
+                                        <div class="card no-b p-3">
+                                            <div class="form-group">
+                                                <input type="text" class="form-control" placeholder="PORT">
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="text" class="form-control" placeholder="Boudtreat">
+                                            </div>
+                                            <div class="form-group">
+                                                <button class="btn btn-info"><i class="icon icon-refresh"></i>CONNECT</button>
+                                                <!--disconnect button-->
+                                                <!--<button class="btn btn-danger"><i class="icon icon-power-off"></i>DISCONNECT</button>-->
+                                            </div>
+                                        </div>
+                                    </li>
+
+                                    <li class="pt-3 pb-3 sticky p-3 b-b white">
+                                        <span class="badge r-3 badge-success">STATUS</span>
+                                    </li>
+                                    <li class="my-1">
+                                        <div class="card no-b p-3 col-md-6 float-left">
+                                            <small>Altitude</small>
+                                            <div>
+                                                <strong style="color: #000;">NAN m</strong>
+                                            </div>
+                                        </div>
+                                        <div class="card no-b p-3 col-md-6">
+                                            <small>Distance to WP</small>
+                                            <div>
+                                                <strong style="color: #000;">NAN m</strong>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="my-1">
+                                        <div class="card no-b p-3 col-md-6 float-left">
+                                            <small>Vertical Speed</small>
+                                            <div>
+                                                <strong style="color: #000;">NAN mph</strong>
+                                            </div>
+                                        </div>
+                                        <div class="card no-b p-3 col-md-6">
+                                            <small>Ground Speed</small>
+                                            <div>
+                                                <strong style="color: #000;">NAN mph</strong>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="my-1">
+                                        <div class="card no-b p-3 col-md-6 float-left">
+                                            <small>Yaw</small>
+                                            <div>
+                                                <strong style="color: #000;">NAN deg</strong>
+                                            </div>
+                                        </div>
+                                        <div class="card no-b p-3 col-md-6">
+                                            <small>distance to MAV</small>
+                                            <div>
+                                                <strong style="color: #000;">NAN</strong>
+                                            </div>
+                                        </div>
+                                    </li>
+
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <a href="#" data-toggle="push-menu" class="paper-nav-toggle left ml-2 fixed">
+        <i></i>
+    </a>
+    <!--main-->
+    <div class="has-sidebar-left has-sidebar-tabs">
+        <div class="container-fluid relative animatedParent animateOnce my-3">
+            <!--MAP DISINI-->
+        </div>
+    </div>
+    <!--right sidebar-->
+    <aside class="control-sidebar fixed white" style="right: 0; width: auto">
+        <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: 695px;">
+            <div class="slimScroll" style="overflow: hidden; width: auto; height: 695px;">
+                <div class="sidebar-header">
+                    <h6><b>Plane</b></h6>
+                </div>
+                <div class="table-responsive">
+                    <table id="recent-orders" class="table table-hover mb-0 ps-container ps-theme-default">
+                        <tbody>
+                        <tr class="bg-light">
+                            <td>
+                                <a class="nav-link" href=""><i class="icon-plane"></i></a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <a class="nav-link" href=""><i class="icon-plane text-red"></i></a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <a class="nav-link" href=""><i class="icon-plane text-green"></i></a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <a class="nav-link" href=""><i class="icon-add_circle text-dark"></i></a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="slimScrollBar" style="background: rgba(0, 0, 0, 0.95); width: 5px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 407.616px;"></div>
+            <div class="slimScrollRail" style="width: 5px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;"></div>
+        </div>
+    </aside>
+    <div class="control-sidebar-bg shadow white fixed"></div>
+</div>
+<!--/#app -->
+<script src="/static/scripts/js/app.js"></script>
+
+<script>(function($,d){$.each(readyQ,function(i,f){$(f)});$.each(bindReadyQ,function(i,f){$(d).bind("ready",f)})})(jQuery,document)</script>
+</body>
+</html>

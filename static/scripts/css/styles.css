@@ -1,0 +1,272 @@
+@import url('https://fonts.googleapis.com/css?family=Poppins');
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  list-style: none;
+  text-decoration: none;
+  font-family: Poppins;
+}
+
+body{
+   background-color: #f3f5f9;
+}
+
+.wrapper{
+  display: flex;
+  position: relative;
+}
+
+.wrapper .menu-bar{
+    background: #FFFFFF;
+    border-right: 0.1px #bdb8d7;
+    width: 80px;
+    height: 100%;
+    padding: 30px 0px;
+    position: fixed;
+}
+
+.wrapper .menu-bar h2{
+  color: grey;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.wrapper .menu-bar a{
+    color: #fff;
+    text-transform: uppercase;
+    text-align: center;
+  
+}
+
+.wrapper .menu-bar ul li{
+  padding: 15px;
+  border-bottom: 1px solid #bdb8d7;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-top: 1px solid rgba(255,255,255,0.05);
+}    
+
+.wrapper .menu-bar ul li a{
+  color: #bdb8d7;
+  display: block;
+}
+
+.wrapper .menu-bar ul li a .fas{
+  width: 25px;
+}
+
+.wrapper .menu-bar ul li:hover{
+  background-color: rgba(0, 0, 0, 0.1);
+}
+    
+.wrapper .menu-bar ul li:hover a{
+  color: #fff;
+}
+ 
+
+
+.wrapper .properties{
+  width: 16%;
+  height: 100%;
+  margin-left: 80px;
+  box-shadow: 10px 0px 10px rgba(0, 0, 0, 0.05);
+  background: white;
+  position: fixed;
+}
+
+.wrapper .properties .disconnect-btn{
+  padding-top: 40px;
+  padding-bottom: 40px;
+  text-align: center;
+  background:  #AF0101;
+  color: white;
+  border-bottom: 1px solid #e0e4e8;
+}
+
+
+.wrapper .properties .info{
+  line-height: 25px;
+}
+
+.wrapper .properties .info .wahana-detail{
+    border-radius: 3px;
+    border: 1px solid #17202A; 
+    height: auto;  
+    padding: 10px;
+    margin-right: 20px;
+    margin-left: 20px;
+    text-align: center;
+    margin-top: 10px;
+
+}
+
+.wrapper .properties .info .status{
+    margin-left: 25px;
+    margin-top: 10px;
+}
+.wrapper .properties .info .status >div{
+    font-size: 10px;
+}
+.wrapper .properties .info .status .number{
+    font-size: large;
+
+}
+
+.wrapper .wahana {
+    position: fixed;
+    right: 0px;
+    width: 70px;
+    height: 100%;
+    background: #FFFFFF;
+    box-shadow: -10px 0px 10px rgba(0, 0, 0, 0.05);
+ 
+}
+
+.wrapper .wahana ul li{
+    padding: 15px;
+    border-bottom: 1px solid #bdb8d7;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.wrapper .tool-bar ul li:hover{
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.wrapper .tool-bar{
+    position: fixed;
+    right: 0px;
+    width: 70px;
+    height: 100%;
+    background: #FFFFFF;
+    box-shadow: -10px 0px 10px rgba(0, 0, 0, 0.05);
+ 
+}
+
+
+.wrapper .tool-bar ul li{
+    padding: 15px;
+    border-bottom: 1px solid #bdb8d7;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+
+
+.wrapper .tool-bar a{
+    color: grey;
+    display: blok;
+    
+}
+
+.wrapper .tool-bar ul li .wp-button{
+  background-color: grey;
+  border: none;
+  color: white;
+  padding: 3px;
+  border-radius: 2px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+
+/* The popup form - hidden by default */
+.wp-popup {
+  display: none;
+  position: fixed;
+  width: 82%;
+  height: 40%;
+  bottom: 0;
+  right: 70px;
+  z-index: 9;
+  background: #FFFFFF;
+  box-shadow: 0px -10px 10px rgba(0, 0, 0, 0.05);
+  border-radius: 30px 0px 0px 0px;
+}
+
+
+
+.wp-popup .wp-cmd{
+  margin-top: 30px;
+  margin-left: 25px;
+
+}
+
+.wp-popup .wp-cmd ul li{
+  padding: 5px 10px;
+  display: inline;
+  border:  1px solid grey;
+  margin-left: 5px;
+
+}
+
+.wp-popup .wp-list{
+  border: 1px solid grey;
+  background-color: silver;
+  padding: 10px;
+  margin-top: 10px;
+  margin-left: 25px;
+  width: 15%;
+}
+
+.wp-popup .wahana-box{
+  margin-left: 400px;
+  margin-top: 25px;
+  color: red;
+  width: 5%;
+  height: 80%;
+}
+
+.wp-popup .wahana-box ul li{
+  padding 10px;
+  text-align: center;
+  border: 1px;
+  border-style: solid;
+  border-color: grey;
+  left: 50px;
+}    
+
+
+/* Add styles to the form container */
+.form-container {
+  padding: 10px;
+  background-color: white;
+}
+
+/* Full-width input fields */
+.form-container input[type=text], .form-container input[type=password] {
+  width: 100%;
+  padding: 15px;
+  margin: 5px 0 22px 0;
+  border: none;
+  background: #f1f1f1;
+}
+
+/* When the inputs get focus, do something */
+.form-container input[type=text]:focus, .form-container input[type=password]:focus {
+  background-color: #ddd;
+  outline: none;
+}
+
+/* Set a style for the submit/login button */
+.form-container .btn {
+  background-color: #4CAF50;
+  color: white;
+  padding: 16px 20px;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom:10px;
+  opacity: 0.8;
+}
+
+/* Add a red background color to the cancel button */
+.form-container .cancel {
+  background-color: red;
+}
+
+/* Add some hover effects to buttons */
+.form-container .btn:hover, .open-button:hover {
+  opacity: 1;
+}
