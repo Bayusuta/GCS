@@ -8,8 +8,17 @@
     <link rel="icon" href="/static/images/basic/favicon.ico" type="image/x-icon">
     <title>Bayusuta</title>
     <!-- CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.0/css/ol.css" type="text/css">
     <link rel="stylesheet" href="/static/scripts/css/app.css">
     <style>
+
+        html, body{
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+        }
+
         .loader {
             position: fixed;
             left: 0;
@@ -21,14 +30,60 @@
             text-align: center;
         }
 
+        #app {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        #header { 
+            position: absolute;
+            left: 350px;
+            bottom: 0px;
+            color: white;
+            z-index: 100;
+            font-family: Sans;
+            margin-top: 20px;
+        }
+
         .plane-container {
             position: absolute;
             top: 50%;
             left: 50%;
         }
+
+        .map {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        .ol-zoom, .ol-attribution {
+            right: 100px !important;
+            left: initial;
+        }
+
+        body.disabled {
+         filter: grayscale(100%);
+         -webkit-filter: grayscale(100%);
+         filter: contrast(30%);
+         -webkit-filter: contrast(30%);
+         }
     </style>
     <!-- Js -->
     <script>(function(w,d,u){w.readyQ=[];w.bindReadyQ=[];function p(x,y){if(x=="ready"){w.bindReadyQ.push(y);}else{w.readyQ.push(x);}};var a={ready:p,bind:p};w.$=w.jQuery=function(f){if(f===d||f===u){return a}else{p(f)}}})(window,document)</script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.0/build/ol.js" type="text/javascript"></script>
+    <script>
+        // Running in electron
+        try {
+            $ = jQuery = module.exports;
+            // If you want module.exports to be empty, uncomment:
+            // module.exports = {};
+        } catch(e) {}
+     </script>
 </head>
 <body class="light sidebar-mini sidebar-collapsex sidebar-expanded-on-hoverx">
 <!-- Pre loader -->
@@ -178,9 +233,14 @@
         <i></i>
     </a>
     <!--main-->
-    <div class="has-sidebar-left has-sidebar-tabs">
-        <div class="container-fluid relative animatedParent animateOnce my-3">
+    <div class="has-sidebar-left has-sidebar-tabs" style="margin: 0; padding: 0; height: 100%; width: 100%;">
+        <div class="container-fluid relative animatedParent animateOnce " style="margin: 0; padding: 0; height: 100%; width: 100%;">
             <!--MAP DISINI-->
+            <div id="header">
+                <p id="pointer-coordinate" style="background-color:rgba(0,60,136,.5);"><b>Longitude:</b> ??? <b>Latitude:</b> ??? </p>
+             </div>
+            <!-- <div style="background-color: aquamarine; height: 100px; width: 100px;"></div> -->
+            <div id="map" class="map"></div>
         </div>
     </div>
     <!--right sidebar-->
@@ -225,6 +285,7 @@
 </div>
 <!--/#app -->
 <script src="/static/scripts/js/app.js"></script>
+<script type="text/javascript" src="/static/scripts/js/statusrealtime.js"></script>
 
 <script>(function($,d){$.each(readyQ,function(i,f){$(f)});$.each(bindReadyQ,function(i,f){$(d).bind("ready",f)})})(jQuery,document)</script>
 </body>
