@@ -1,6 +1,14 @@
 var transform = ol.proj.getTransform('EPSG:3857', 'EPSG:4326');
 var PointerInteraction = ol.interaction.Pointer;
 
+// -- Global Variable -- //
+
+var HomePoint_List = new Map();
+var lastHomeID = 0;
+var color_List = ["red", "green", "blue"];
+
+// -- End of Global Variable -- //
+
 // -- Map Mouse Event -- //
 
 var Drag = (function (PointerInteraction) {
@@ -85,6 +93,7 @@ function handleUpEvent() {
 
 // -- END OF Map Mouse Event -- //
 
+// -- THE MAP -- //
 
 var map = new ol.Map({
   // controls: [],
@@ -112,3 +121,80 @@ var map = new ol.Map({
     zoom: 18
   })
 });
+
+// -- END OF THE MAP -- //
+
+// -- Connect Button Clicked -- //
+
+$('#btn-connect').on('click', function(){
+  console.log("Connecting ...");
+  var address = $('#textbox-address').val();
+  var baudrate = $('#textbox-baudrate').val();
+  
+  $.ajax({
+    method: 'PUT',
+    url: '/api/connect',
+    contentType : 'application/json',
+    data: JSON.stringify({ addr: address, baudrate: baudrate, id: lastHomeID }),
+  })
+  .done(function( msg ) {
+    if(msg.error == 0){
+      alert("Connection failed");
+    }else if(msg.error == 1){
+      alert("Connection success (aslinya failed)");
+      var coords = prompt("Enter lon,lat format: {\"lon\":,\"lat\":}");
+
+      // Sample Input:
+      // {"lon": 112.79758155388635,"lat":-7.2772675487336045} //
+      // {"lon": 112.79817163986962,"lat":-7.27737929405518} //
+
+      var coordsobj = JSON.parse(coords);
+      addHomePoint([coordsobj.lon, coordsobj.lat], lastHomeID);
+      lastHomeID++;
+    }else{
+      alert("Unknown error");
+    }
+  });
+});
+
+// -- End of Connect Button Clicked -- //
+
+// -- Function : Add Home Point -- //
+
+function addHomePoint(coordinate, id){
+  console.log(coordinate);
+  var lon = coordinate[0], lat = coordinate[1];
+
+  var Home_markerElement = document.createElement('div');
+  Home_markerElement.classList.add("marker");
+  Home_markerElement.setAttribute("data-point-id", id);
+  var backgroundColor = color_List[HomePoint_List.size];
+  var style = "display:flex;\
+  justify-content:center;\
+  align-items:center;\
+  box-sizing:border-box;\
+  width: 30px;\
+  height: 30px;\
+  color:#fff;\
+  background: "+backgroundColor+";\
+  border:solid 2px;\
+  border-radius: 0 70% 70%;\
+  box-shadow:0 0 2px #000;\
+  cursor: pointer;\
+  transform-origin:0 0;\
+  transform: rotateZ(-135deg);";
+  Home_markerElement.innerHTML = '<span style="'+style+'"><b style="transform: rotateZ(135deg);">H</b></span>';
+
+  HomePoint_List.set(id, [lon,lat]);
+
+  var Home_markerOverlay = new ol.Overlay({
+    element: Home_markerElement,
+    position: ol.proj.transform([lon, lat], 'EPSG:4326', 'EPSG:3857'),
+    positioning: 'center-center'
+  });
+
+  map.addOverlay(Home_markerOverlay);
+  console.log(HomePoint_List);
+}
+
+// -- End of Function : Add Home Point -- //
