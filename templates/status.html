@@ -154,9 +154,9 @@
                 </div>
                 <div class="tab-content flex-grow-1" id="v-pills-tabContent">
                     <div class="tab-pane fade show active" id="v-pills-profile" role="tabpanel" aria-labelledby="v-pills-profile-tab">
-                        <div class="relative brand-wrapper sticky b-b p-3 blink bg-danger">
+                        <div class="relative brand-wrapper sticky b-b p-3 bg-danger">
                         <!--<div class="relative brand-wrapper sticky b-b p-3 blink bg-success">-->
-                            <center><h2 class="text-white">DISCONNECTED</h2></center>
+                            <center><h2 id="text-connection" class="text-white">DISCONNECTED</h2></center>
                             <!--<center><h2 class="text-white">CONNECTED</h2></center>-->
                         </div>
                         <div class="sticky slimScroll">
@@ -186,13 +186,13 @@
                                         <div class="card no-b p-3 col-md-6 float-left">
                                             <small>Altitude</small>
                                             <div>
-                                                <strong style="color: #000;">NAN m</strong>
+                                                <strong id="header-alt" style="color: #000;">NAN m</strong>
                                             </div>
                                         </div>
                                         <div class="card no-b p-3 col-md-6">
                                             <small>Distance to WP</small>
                                             <div>
-                                                <strong style="color: #000;">NAN m</strong>
+                                                <strong id="header-distWP" style="color: #000;">NAN m</strong>
                                             </div>
                                         </div>
                                     </li>
@@ -200,13 +200,13 @@
                                         <div class="card no-b p-3 col-md-6 float-left">
                                             <small>Vertical Speed</small>
                                             <div>
-                                                <strong style="color: #000;">NAN mph</strong>
+                                                <strong id="header-vspeed" style="color: #000;">NAN mph</strong>
                                             </div>
                                         </div>
                                         <div class="card no-b p-3 col-md-6">
                                             <small>Ground Speed</small>
                                             <div>
-                                                <strong style="color: #000;">NAN mph</strong>
+                                                <strong id="header-gspeed" style="color: #000;">NAN mph</strong>
                                             </div>
                                         </div>
                                     </li>
@@ -214,7 +214,7 @@
                                         <div class="card no-b p-3 col-md-6 float-left">
                                             <small>Yaw</small>
                                             <div>
-                                                <strong style="color: #000;">NAN deg</strong>
+                                                <strong id="header-yaw" style="color: #000;">NAN deg</strong>
                                             </div>
                                         </div>
                                         <div class="card no-b p-3 col-md-6">

@@ -46,6 +46,8 @@ def state_msg(id):
         "alt": vehicles[id].location.global_relative_frame.alt,
         "mode": vehicles[id].mode.name,
         "heading": vehicles[id].heading or 0,
+        "vspeed":vehicles[id].airspeed,
+        "gspeed":vehicles[id].groundspeed,
         "lat": vehicles[id].location.global_relative_frame.lat,
         "lon": vehicles[id].location.global_relative_frame.lon
     }
@@ -212,7 +214,7 @@ def api_connect():
                     nvehicle = connect(str(addr), wait_ready=True, baud=int(baudrate))
                     nvehicle.id = id
                     vehicles.append(nvehicle)
-                    vehicles[id].parameters['ARMING_CHECK'] = 1
+                    vehicles[id].parameters['ARMING_CHECK'] = 0
                     vehicles[id].flush()
 
                     print("Vehicle Connected")
@@ -220,6 +222,7 @@ def api_connect():
                     print('waiting for connection... (%s)' % str(e))
                     c+=1
                     time.sleep(2)
+            return "oks"
         except Exception as e:
             print(e)
             return "Failed to Connect to Vehicle..."

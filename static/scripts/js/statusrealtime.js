@@ -137,24 +137,28 @@ $('#btn-connect').on('click', function(){
     contentType : 'application/json',
     data: JSON.stringify({ addr: address, baudrate: baudrate, id: lastHomeID }),
   })
-  .done(function( msg ) {
-    if(msg.error == 0){
-      alert("Connection failed");
-    }else if(msg.error == 1){
-      alert("Connection success (aslinya failed)");
-      var coords = prompt("Enter lon,lat format: {\"lon\":,\"lat\":}");
-
-      // Sample Input:
-      // {"lon": 112.79758155388635,"lat":-7.2772675487336045} //
-      // {"lon": 112.79817163986962,"lat":-7.27737929405518} //
-
-      var coordsobj = JSON.parse(coords);
-      addHomePoint([coordsobj.lon, coordsobj.lat], lastHomeID);
-      lastHomeID++;
-    }else{
-      alert("Unknown error");
-    }
+  .done(function(msg) {
+    $('#text-connection').html('<center><h2 id="connection" class="text-white">CONNECTED</h2></center>');
+    console.log('vehicle connected')
   });
+  // .done(function( msg ) {
+  //   if(msg.error == 0){
+  //     alert("Connection failed");
+  //   }else if(msg.error == 1){
+  //     alert("Connection success (aslinya failed)");
+  //     var coords = prompt("Enter lon,lat format: {\"lon\":,\"lat\":}");
+
+  //     // Sample Input:
+  //     // {"lon": 112.79758155388635,"lat":-7.2772675487336045} //
+  //     // {"lon": 112.79817163986962,"lat":-7.27737929405518} //
+
+  //     var coordsobj = JSON.parse(coords);
+  //     addHomePoint([coordsobj.lon, coordsobj.lat], lastHomeID);
+  //     lastHomeID++;
+  //   }else{
+  //     alert("Unknown error");
+  //   }
+  // });
 });
 
 // -- End of Connect Button Clicked -- //
@@ -198,3 +202,23 @@ function addHomePoint(coordinate, id){
 }
 
 // -- End of Function : Add Home Point -- //
+
+// Global msg//
+var globmsg = null;
+
+var source = new EventSource('/api/sse/state');
+source.onmessage = function(event) {
+  // console.log(event.data);
+  var msg = JSON.parse(event.data);
+  if (!globmsg) {
+    console.log('FIRST', msg);
+    $('body').removeClass('disabled')
+    //map.getView().setCenter(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
+  }
+  globmsg = msg;
+
+  $('#header-alt').html('<strong id="header-alt" style="color: #000;">' + msg.alt +'</strong>');
+  $('#header-vspeed').html('<strong id="header-alt" style="color: #000;">' + msg.vspeed +'</strong>');
+  $('#header-gspeed').html('<strong id="header-alt" style="color: #000;">' + msg.gspeed.toFixed(3) +'</strong>');
+  $('#header-yaw').html('<strong id="header-alt" style="color: #000;">' + msg.heading +'</strong>');
+};
