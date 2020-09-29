@@ -138,6 +138,8 @@ $('#btn-connect').on('click', function(){
   console.log("Connecting ...");
   var address = $('#textbox-address').val();
   var baudrate = $('#textbox-baudrate').val();
+
+  VehicleData_List.set(current_activeID, {address:address, baudrate:baudrate, isConnected:false});
   
   $.ajax({
     method: 'PUT',
@@ -156,6 +158,9 @@ $('#btn-connect').on('click', function(){
       document.getElementById('btn-connect').setAttribute("style", "display: block; width: 100%;");
     }else if(msg.error == 1){
       alert("Connection success (aslinya failed)");
+
+      VehicleData_List.set(current_activeID, {address:address, baudrate:baudrate, isConnected:true});
+
       document.getElementById('btn-disconnect').setAttribute("style", "display: block; width: 100%;");
       document.getElementById('blink-status-disconnected').setAttribute("style", "display: none; width: 100%;");
       document.getElementById('blink-status-connected').setAttribute("style", "display: block; width: 100%;");
@@ -206,7 +211,7 @@ function addHomePoint(coordinate, id){
   var Home_markerElement = document.createElement('div');
   Home_markerElement.classList.add("marker");
   Home_markerElement.setAttribute("data-point-id", id);
-  var backgroundColor = color_List[HomePoint_List.size];
+  var backgroundColor = color_List[id];
   var style = "display:flex;\
   justify-content:center;\
   align-items:center;\
@@ -311,19 +316,20 @@ function switchVehicle(vehicleID){
     document.getElementById('textbox-address').setAttribute("disabled", true);
     document.getElementById('textbox-baudrate').setAttribute("disabled", true);
 
-    document.getElementById('btn-connect').classList.add("btn-danger");
-    document.getElementById('btn-connect').innerHTML = '<i class="icon icon-refresh"></i>DISCONNECT';
+    document.getElementById('btn-connect').setAttribute("style", "display: none; width: 100%;");
+    document.getElementById('btn-disconnect').setAttribute("style", "display: block; width: 100%;");
 
-    document.getElementById('blink-status').classList.remove('bg-danger');
-    document.getElementById('blink-status').classList.remove('blink');
-    document.getElementById('blink-status').classList.add('bg-success');
-
-    document.getElementById('blink-status').innerHTML = '<center><h2 class="text-white">CONNECTED</h2></center>';
+    document.getElementById('blink-status-connected').setAttribute("style", "display: block; width: 100%;");
+    document.getElementById('blink-status-disconnected').setAttribute("style", "display: none; width: 100%;");
   }else{
     document.getElementById('textbox-address').removeAttribute("disabled");
     document.getElementById('textbox-baudrate').removeAttribute("disabled");
-    document.getElementById('btn-connect').classList.add("btn-info");
-    document.getElementById('btn-connect').innerHTML = '<i class="icon icon-refresh"></i>CONNECT';
+
+    document.getElementById('btn-connect').setAttribute("style", "display: block; width: 100%;");
+    document.getElementById('btn-disconnect').setAttribute("style", "display: none; width: 100%;");
+
+    document.getElementById('blink-status-connected').setAttribute("style", "display: none; width: 100%;");
+    document.getElementById('blink-status-disconnected').setAttribute("style", "display: block; width: 100%;");
   }
 }
 
