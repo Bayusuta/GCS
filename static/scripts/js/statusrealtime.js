@@ -4,8 +4,8 @@ var PointerInteraction = ol.interaction.Pointer;
 // -- Global Variable -- //
 
 var HomePoint_List = new Map();
-var lastHomeID = 0;
-var color_List = ["red", "green", "blue"];
+var lastVehicleID = 0;
+var color_List = ["blue", "green", "red", "purple", "yellow"];
 
 // -- End of Global Variable -- //
 
@@ -140,7 +140,7 @@ $('#btn-connect').on('click', function(){
     method: 'PUT',
     url: '/api/connect',
     contentType : 'application/json',
-    data: JSON.stringify({ addr: address, baudrate: baudrate, id: lastHomeID }),
+    data: JSON.stringify({ addr: address, baudrate: baudrate, id: lastVehicleID }),
   })
   .done(function( msg ) {
     document.getElementById('btn-connect').classList.remove("btn-warning");
@@ -174,8 +174,7 @@ $('#btn-connect').on('click', function(){
       // {"lon": 112.79817163986962,"lat":-7.27737929405518} //
 
       var coordsobj = JSON.parse(coords);
-      addHomePoint([coordsobj.lon, coordsobj.lat], lastHomeID);
-      lastHomeID++;
+      addHomePoint([coordsobj.lon, coordsobj.lat], lastVehicleID);
     }else{
       alert("Unknown error");
     }
@@ -240,7 +239,6 @@ $('#push-menu').on('click', function(){
 
 // -- End of Function when sidebar collapsed -- //
 
-
 // -- Global msg -- //
 
 var globmsg = null;
@@ -263,3 +261,15 @@ source.onmessage = function(event) {
 };
 
 // -- End of Global Message -- //
+
+// -- Function add new vehicle -- //
+
+function addVehicle(){
+  console.log("add Vehicle");
+
+  var markup = '<tr data-vehicle-id="' + lastVehicleID + '"><td><a class="nav-link" href="#"><i class="icon-plane text-'+color_List[HomePoint_List.size]+'"></i></a></td></tr>';
+  $("#vehicle-list").append(markup);
+  HomePoint_List.set(lastVehicleID, [null,null]);  lastVehicleID++;
+}
+
+// -- End of Function add new vehicle -- //
