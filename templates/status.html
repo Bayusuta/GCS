@@ -256,26 +256,22 @@
                     <h6><b>Plane</b></h6>
                 </div>
                 <div class="table-responsive">
-                    <table id="recent-orders" class="table table-hover mb-0 ps-container ps-theme-default">
+                    <table class="table table-hover mb-0 ps-container ps-theme-default">
+                        <tbody id="vehicle-list">
+                        <!-- <tr>
+                            <td>
+                                <a class="nav-link" href=""><i class="icon-plane text-blue"></i></a>
+                            </td>
+                        </tr> -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 ps-container ps-theme-default">
                         <tbody >
-                        <tr class="bg-light">
-                            <td>
-                                <a class="nav-link" href=""><i class="icon-plane"></i></a>
-                            </td>
-                        </tr>
                         <tr>
                             <td>
-                                <a class="nav-link" href=""><i class="icon-plane text-red"></i></a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <a class="nav-link" href=""><i class="icon-plane text-green"></i></a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <a class="nav-link" href=""><i class="icon-add_circle text-dark"></i></a>
+                                <a id="button-add-vehicle" class="nav-link" href="#" onclick="addVehicle()"><i class="icon-add_circle text-dark"></i></a>
                             </td>
                         </tr>
                         </tbody>
@@ -291,7 +287,11 @@
 <!--/#app -->
 <script src="/static/scripts/js/app.js"></script>
 <script type="text/javascript" src="/static/scripts/js/statusrealtime.js"></script>
-
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#button-add-vehicle").click();
+    });
+</script>
 <script>(function($,d){$.each(readyQ,function(i,f){$(f)});$.each(bindReadyQ,function(i,f){$(d).bind("ready",f)})})(jQuery,document)</script>
 </body>
 </html>
