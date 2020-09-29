@@ -3,7 +3,7 @@
 from dronekit import connect, VehicleMode, LocationGlobalRelative
 from pymavlink import mavutil
 from queue import Queue
-from flask import Flask, render_template, jsonify, Response, request
+from flask import Flask, render_template, jsonify, Response, request, redirect, url_for
 import time
 import json
 import urllib
@@ -21,7 +21,7 @@ import dronekit_sitl as sim
 sitl                = sim.start_default()
 connection_string   = sitl.connection_string()
 
-vehicles = []
+vehicles = {}
 vehicle = None
 
 # Allow us to reuse sockets after the are bound.
@@ -36,20 +36,20 @@ def sse_encode(obj, id=None):
     return "data: %s\n\n" % json.dumps(obj)
 
 def state_msg(id):
-    if vehicles[id].location.global_relative_frame.lat == None:
+    if vehicles.get(id).location.global_relative_frame.lat == None:
         raise Exception('no position info')
-    if vehicles[id].armed == None:
+    if vehicles.get(id).armed == None:
         raise Exception('no armed info')
     return {
-        "id": vehicles[id].id,
-        "armed": vehicles[id].armed,
-        "alt": vehicles[id].location.global_relative_frame.alt,
-        "mode": vehicles[id].mode.name,
-        "heading": vehicles[id].heading or 0,
-        "vspeed":vehicles[id].airspeed,
-        "gspeed":vehicles[id].groundspeed,
-        "lat": vehicles[id].location.global_relative_frame.lat,
-        "lon": vehicles[id].location.global_relative_frame.lon
+        "id": vehicles.get(id).id,
+        "armed": vehicles.get(id).armed,
+        "alt": vehicles.get(id).location.global_relative_frame.alt,
+        "mode": vehicles.get(id).mode.name,
+        "heading": vehicles.get(id).heading or 0,
+        "vspeed":vehicles.get(id).airspeed,
+        "gspeed":vehicles.get(id).groundspeed,
+        "lat": vehicles.get(id).location.global_relative_frame.lat,
+        "lon": vehicles.get(id).location.global_relative_frame.lon
     }
 
 def arm_and_takeoff(aTargetAltitude, id):
@@ -65,24 +65,24 @@ def arm_and_takeoff(aTargetAltitude, id):
 
     print("Arming motors")
     # Copter should arm in GUIDED mode
-    vehicles[id].mode = VehicleMode("GUIDED")
-    vehicles[id].armed = True
+    vehicles.get(id).mode = VehicleMode("GUIDED")
+    vehicles.get(id).armed = True
 
     # Confirm vehicle armed before attempting to take off
-    while not vehicles[id].armed:
+    while not vehicles.get(id).armed:
         print(" Waiting for arming...")
         time.sleep(1)
 
     print("Taking off!")
-    vehicles[id].simple_takeoff(aTargetAltitude)  # Take off to target altitude
+    vehicles.get(id).simple_takeoff(aTargetAltitude)  # Take off to target altitude
 
     # Wait until the vehicle reaches a safe height before processing the goto
     #  (otherwise the command after Vehicle.simple_takeoff will execute
     #   immediately).
     while True:
-        print(" Altitude: ", vehicles[id].location.global_relative_frame.alt)
+        print(" Altitude: ", vehicles.get(id).location.global_relative_frame.alt)
         # Break and return from function just below target altitude.
-        if vehicles[id].location.global_relative_frame.alt >= aTargetAltitude * 0.95:
+        if vehicles.get(id).location.global_relative_frame.alt >= aTargetAltitude * 0.95:
             print("Reached target altitude")
             break
         time.sleep(1)
@@ -92,7 +92,11 @@ app = Flask(__name__)
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
 @app.route("/")
-def home():
+def index():
+    return redirect(url_for('status'))
+
+@app.route("/status")
+def status():
     return render_template('status.html', branding=False)
 
 @app.route("/marker-overlay")
@@ -113,8 +117,8 @@ def tcount():
     while True:
         time.sleep(0.25)
         try:
-            for vehicle in vehicles:
-                msg = state_msg(vehicle.id)
+            for id in vehicles:
+                msg = state_msg(id)
                 for x in listeners_location:
                     x.put(msg)
         except Exception as e:
@@ -171,8 +175,8 @@ def api_mode():
     if request.method == 'POST' or request.method == 'PUT':
         try:
             id = int(request.json['id'])
-            vehicles[id].mode = VehicleMode(request.json['mode'].upper())
-            vehicles[id].flush()
+            vehicles.get(id).mode = VehicleMode(request.json['mode'].upper())
+            vehicles.get(id).flush()
             return jsonify(ok=True)
         except Exception as e:
             print(e)
@@ -185,11 +189,11 @@ def api_goto():
             id = int(request.json['id'])
             waypoints=request.json['waypoints']
             print("Set default/target airspeed to 3")
-            vehicles[id].airspeed = 3
+            vehicles.get(id).airspeed = 3
             for xy in waypoints:
                 print("Going to : lat ", xy[1] , " long : " , xy[0])
                 waypoint = LocationGlobalRelative(float(xy[1]), float(xy[0]), 20)
-                vehicles[id].simple_goto(waypoint)
+                vehicles.get(id).simple_goto(waypoint)
                 time.sleep(30)
 
             # vehicle.mode = VehicleMode(request.json['mode'].upper())
@@ -214,24 +218,39 @@ def api_connect():
                 try:
                     nvehicle = connect(str(addr), wait_ready=True, baud=int(baudrate))
                     nvehicle.id = id
-                    vehicles.append(nvehicle)
-                    vehicles[id].parameters['ARMING_CHECK'] = 0
-                    vehicles[id].flush()
-
+                    vehicles[id] = nvehicle
+                    # vehicles.append(nvehicle)
+                    print(vehicles.get(id).airspeed)
+                    vehicles.get(id).parameters['ARMING_CHECK'] = 0
+                    vehicles.get(id).flush()
                     print("Vehicle Connected")
                 except Exception as e:
                     print('waiting for connection... (%s)' % str(e))
                     c+=1
                     time.sleep(2)
 #             return "oks"
+            nlon = vehicles.get(id).location.global_relative_frame.lon
+            nlat = vehicles.get(id).location.global_relative_frame.lat
             if not nvehicle:
                 return jsonify(error=1,msg="Failed to Connect to Vehicle")
             else:
-                return jsonify(error=0,msg="Connection success")
+                return jsonify(error=0,msg="Connection success",lon=nlon,lat=nlat)
         except Exception as e:
             print(e)
             return jsonify(error=1,msg="Failed to Connect to Vehicle")
 
+@app.route("/api/disconnect", methods=['POST','PUT'])
+def api_disconnect():
+    if request.method =='POST' or request.method == 'PUT':
+            try:
+                id = int(request.json['id'])
+                if id in vehicles:
+                    vehicles.get(id).close()
+                    vehicles.pop(id)
+                return "success"
+            except Exception as e:
+                print(e)
+                return "failed"
 def connect_to_drone():
     global vehicles#
     nvehicle = None#

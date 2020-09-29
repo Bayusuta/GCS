@@ -4,12 +4,10 @@ var PointerInteraction = ol.interaction.Pointer;
 // -- Global Variable -- //
 
 var HomePoint_List = new Map();
-var VehicleData_List = new Map();
-var Overlay_List = new Map();
-
-var lastVehicleID = 0;
-var current_activeID = 0;
-var color_List = ["blue", "green", "red", "purple", "yellow"];
+var lastHomeID = 1;
+var color_List = ["red", "green", "blue"];
+var currentStatusDisplay = 0;
+var connectedVehicle = null;
 
 // -- End of Global Variable -- //
 
@@ -132,50 +130,64 @@ var map = new ol.Map({
 
 $('#btn-connect').on('click', function(){
   // Change button animation
-  document.getElementById('btn-connecting').setAttribute("style", "display: block; width: 100%;");
-  document.getElementById('btn-connect').setAttribute("style", "display: none; width: 100%;");
+  document.getElementById('btn-connect').classList.remove("btn-info");
+  document.getElementById('btn-connect').classList.add("btn-warning");
+  document.getElementById('btn-connect').innerHTML = '<i class="icon icon-refresh"></i>CONNECTING...';
 
   console.log("Connecting ...");
   var address = $('#textbox-address').val();
   var baudrate = $('#textbox-baudrate').val();
-
-  VehicleData_List.set(current_activeID, {address:address, baudrate:baudrate, isConnected:false});
   
   $.ajax({
     method: 'PUT',
     url: '/api/connect',
     contentType : 'application/json',
-    data: JSON.stringify({ addr: address, baudrate: baudrate, id: current_activeID }),
+    data: JSON.stringify({ addr: address, baudrate: baudrate, id: currentStatusDisplay }),
   })
   .done(function( msg ) {
-    document.getElementById('btn-connecting').setAttribute("style", "display: none; width: 100%;");
+    document.getElementById('btn-connect').classList.remove("btn-warning");
+
+
     /* error:0 = connection success
        error: selain 0 = connection failed
        sementara yang error dianggap sukses dulu
     */
     if(msg.error == 0){
-      alert("Connection failed");
-      document.getElementById('btn-connect').setAttribute("style", "display: block; width: 100%;");
+      alert("Connection Success");
+      document.getElementById('btn-connect').classList.add("btn-info");
+      document.getElementById('btn-connect').innerHTML = '<i class="icon icon-refresh"></i>CONNECT';
+
+      //toggle status connect/disconnect
+      document.getElementById("status-connect").style.display = "block";
+      document.getElementById("status-disconnect").style.display = "none";
+      //toggle button connect/disconnect
+      document.getElementById("btn-connect").style.display = "none";
+      document.getElementById("btn-disconnect").style.display = "block";
+
+      addHomePoint([msg.lon, msg.lat], currentStatusDisplay);
+      //lastHomeID++;
     }else if(msg.error == 1){
       alert("Connection success (aslinya failed)");
+      document.getElementById('btn-connect').classList.add("btn-danger");
+      document.getElementById('btn-connect').innerHTML = '<i class="icon icon-refresh"></i>DISCONNECT';
 
-      VehicleData_List.set(current_activeID, {address:address, baudrate:baudrate, isConnected:true});
+      document.getElementById('blink-status').classList.remove('bg-danger');
+      document.getElementById('blink-status').classList.remove('blink');
+      document.getElementById('blink-status').classList.add('bg-success');
 
-      document.getElementById('btn-disconnect').setAttribute("style", "display: block; width: 100%;");
-      document.getElementById('blink-status-disconnected').setAttribute("style", "display: none; width: 100%;");
-      document.getElementById('blink-status-connected').setAttribute("style", "display: block; width: 100%;");
-
+      document.getElementById('blink-status').innerHTML = '<center><h2 class="text-white">CONNECTED</h2></center>';
       document.getElementById('textbox-address').setAttribute("disabled", true);
       document.getElementById('textbox-baudrate').setAttribute("disabled", true);
 
-      var coords = prompt("Enter lon,lat format: {\"lon\":,\"lat\":}", '{"lon": 112.79758155388635,"lat":-7.2772675487336045}');
+      // var coords = prompt("Enter lon,lat format: {\"lon\":,\"lat\":}");
 
-      // Sample Input:
-      // {"lon": 112.79758155388635,"lat":-7.2772675487336045} //
-      // {"lon": 112.79817163986962,"lat":-7.27737929405518} //
+      // // Sample Input:
+      // // {"lon": 112.79758155388635,"lat":-7.2772675487336045} //
+      // // {"lon": 112.79817163986962,"lat":-7.27737929405518} //
 
-      var coordsobj = JSON.parse(coords);
-      addHomePoint([coordsobj.lon, coordsobj.lat], current_activeID);
+      // var coordsobj = JSON.parse(coords);
+      // addHomePoint([coordsobj.lon, coordsobj.lat], lastHomeID);
+      //lastHomeID++;
     }else{
       alert("Unknown error");
     }
@@ -184,27 +196,33 @@ $('#btn-connect').on('click', function(){
 
 // -- End of Connect Button Clicked -- //
 
-// -- Button Disconnect Clicked -- //
-
+// Disconnect button clicked //
 $('#btn-disconnect').on('click', function(){
+  // Change button animation
+  document.getElementById('btn-disconnect').classList.remove("btn-info");
+  document.getElementById('btn-disconnect').classList.add("btn-warning");
+  document.getElementById('btn-disconnect').innerHTML = '<i class="icon icon-refresh"></i>DISCONNECTING...';
 
-  var tempVehicleData = VehicleData_List.get(current_activeID);
-  VehicleData_List.set(current_activeID, {address:tempVehicleData.address, baudrate:tempVehicleData.baudrate, isConnected:false});
+  $.ajax({
+    method: 'PUT',
+    url: '/api/disconnect',
+    contentType : 'application/json',
+    data: JSON.stringify({ id: currentStatusDisplay }),
+  })
+  .done(function( msg ) {
+    alert("Disconnect Success");
+      document.getElementById('btn-disconnect').classList.add("btn-info");
+      document.getElementById('btn-disconnect').innerHTML = '<i class="icon icon-refresh"></i>DISCONNECT';
 
-  document.getElementById('blink-status-disconnected').setAttribute("style", "display: block; width: 100%;");
-  document.getElementById('blink-status-connected').setAttribute("style", "display: none; width: 100%;");
-
-  document.getElementById('textbox-address').removeAttribute("disabled");
-  document.getElementById('textbox-baudrate').removeAttribute("disabled");
-
-  // Remove Overlay //
-  map.removeOverlay(Overlay_List.get(Number(current_activeID)));
-
-  document.getElementById('btn-connect').setAttribute("style", "display: block; width: 100%;");
-  document.getElementById('btn-disconnect').setAttribute("style", "display: none; width: 100%;");
+    //toggle status connect/disconnect
+    document.getElementById("status-connect").style.display = "none";
+    document.getElementById("status-disconnect").style.display = "block";
+    //toggle button connect/disconnect
+    document.getElementById("btn-connect").style.display = "block";
+    document.getElementById("btn-disconnect").style.display = "none";
+  });
 });
-
-// -- End of Button Disconnect Clicked -- //
+// End Disconnect button clicked //
 
 // -- Function : Add Home Point -- //
 
@@ -215,7 +233,7 @@ function addHomePoint(coordinate, id){
   var Home_markerElement = document.createElement('div');
   Home_markerElement.classList.add("marker");
   Home_markerElement.setAttribute("data-point-id", id);
-  var backgroundColor = color_List[id];
+  var backgroundColor = color_List[HomePoint_List.size];
   var style = "display:flex;\
   justify-content:center;\
   align-items:center;\
@@ -230,7 +248,7 @@ function addHomePoint(coordinate, id){
   cursor: pointer;\
   transform-origin:0 0;\
   transform: rotateZ(-135deg);";
-  Home_markerElement.innerHTML = '<span style="'+style+'"><b style="transform: rotateZ(135deg);">H</b></span>';
+  Home_markerElement.innerHTML = '<span style="'+style+'"><b style="transform: rotateZ(135deg);">'+id+'</b></span>';
 
   HomePoint_List.set(id, [lon,lat]);
 
@@ -240,15 +258,26 @@ function addHomePoint(coordinate, id){
     positioning: 'center-center'
   });
 
-  Overlay_List.set(id, Home_markerOverlay);
-
-  map.addOverlay(Overlay_List.get(Number(id)));
-  console.log("Add Overlay With ID: " + id);
+  map.addOverlay(Home_markerOverlay);
+  map.getView().setCenter(ol.proj.transform([lon, lat], 'EPSG:4326', 'EPSG:3857'));
   console.log(HomePoint_List);
 }
 
 // -- End of Function : Add Home Point -- //
 
+//add vehicle //
+$('#btn-addvehicle').on('click', function(){
+  //document.getElementById("table-vehiclelist")
+  $("#table-vehiclelist").append(
+    `<tr>
+      <td>
+          <button id="icon-vehicle-`+lastHomeID+`" onclick="selectVehicle(`+lastHomeID+`)" style="border: none; background: none; width: 100%;"><i class="icon-plane text-`+color_List[lastHomeID]+`"></i></button>
+      </td>
+    </tr>`
+  );
+  lastHomeID++;
+});
+//end add vehicle // 
 
 // -- Function when sidebar collapsed -- //
 
@@ -265,6 +294,43 @@ $('#push-menu').on('click', function(){
 
 // -- End of Function when sidebar collapsed -- //
 
+// select vehicle //
+function selectVehicle(id){
+  // var ic = document.getElementById("icon-vehicle-"+id).style.background="Gray";
+  currentStatusDisplay = id;
+  $('#uavid').html('<span id="uavid" class="badge r-2 badge-success">STATUS UAVID : '+currentStatusDisplay+'</span>');
+  if(msg.id == currentStatusDisplay){
+    $('#header-alt').html('<strong id="header-alt" style="color: #000;">' + msg.alt +' m</strong>');
+    $('#header-vspeed').html('<strong id="header-alt" style="color: #000;">' + msg.vspeed +'</strong>');
+    $('#header-gspeed').html('<strong id="header-alt" style="color: #000;">' + msg.gspeed.toFixed(3) +'</strong>');
+    $('#header-yaw').html('<strong id="header-alt" style="color: #000;">' + msg.heading +'</strong>');
+  } else{
+    $('#header-alt').html('<strong id="header-alt" style="color: #000;">NAN m</strong>');
+    $('#header-vspeed').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
+    $('#header-gspeed').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
+    $('#header-yaw').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
+  }
+  console.log("currentStatusDisplay " + currentStatusDisplay);
+}
+// end select vehicle //
+
+// Delete vehicle //
+$('#delete-vehicle').on('click', function(){
+  if(currentStatusDisplay!=0){
+    var p3 = document.getElementById("icon-vehicle-"+ currentStatusDisplay);
+    var p2 = p3.parentNode;
+    var p1 = p2.parentNode;
+  
+    p3.parentNode.removeChild(p3);
+    p2.parentNode.removeChild(p2);
+    p1.parentNode.removeChild(p1);
+    
+    currentStatusDisplay--;
+    selectVehicle(currentStatusDisplay);
+  }
+});
+//end delete vehicle//
+
 // -- Global msg -- //
 
 var globmsg = null;
@@ -280,61 +346,17 @@ source.onmessage = function(event) {
   }
   globmsg = msg;
 
-  $('#header-alt').html('<strong id="header-alt" style="color: #000;">' + msg.alt +'</strong>');
-  $('#header-vspeed').html('<strong id="header-alt" style="color: #000;">' + msg.vspeed +'</strong>');
-  $('#header-gspeed').html('<strong id="header-alt" style="color: #000;">' + msg.gspeed.toFixed(3) +'</strong>');
-  $('#header-yaw').html('<strong id="header-alt" style="color: #000;">' + msg.heading +'</strong>');
+  if(msg.id == currentStatusDisplay){
+    $('#header-alt').html('<strong id="header-alt" style="color: #000;">' + msg.alt +' m</strong>');
+    $('#header-vspeed').html('<strong id="header-alt" style="color: #000;">' + msg.vspeed +'</strong>');
+    $('#header-gspeed').html('<strong id="header-alt" style="color: #000;">' + msg.gspeed.toFixed(3) +'</strong>');
+    $('#header-yaw').html('<strong id="header-alt" style="color: #000;">' + msg.heading +'</strong>');
+  } else{
+    $('#header-alt').html('<strong id="header-alt" style="color: #000;">NAN m</strong>');
+    $('#header-vspeed').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
+    $('#header-gspeed').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
+    $('#header-yaw').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
+  }
 };
 
 // -- End of Global Message -- //
-
-// -- Function add new vehicle -- //
-
-function addVehicle(){
-  console.log("add Vehicle");
-
-  var markup = '<tr data-vehicle-id="'+lastVehicleID+'" onclick="switchVehicle('+lastVehicleID+')"><td><a class="nav-link" href="#"><i class="icon-plane text-'+color_List[HomePoint_List.size]+'"></i></a></td></tr>';
-  $("#vehicle-list").append(markup);
-
-  VehicleData_List.set(lastVehicleID, {address:"127.0.0.1:5670", baudrate:1000+lastVehicleID, isConnected:false});
-  HomePoint_List.set(lastVehicleID, [null,null]);
-  
-  switchVehicle(lastVehicleID);
-
-  lastVehicleID++;
-}
-
-// -- End of Function add new vehicle -- //
-
-// -- Function switch vehicle -- //
-
-function switchVehicle(vehicleID){
-  current_activeID = vehicleID;
-  var vehicleData = VehicleData_List.get(Number(vehicleID));
-  console.log(vehicleData);
-
-  document.getElementById('textbox-address').value = vehicleData.address;
-  document.getElementById('textbox-baudrate').value = vehicleData.baudrate;
-
-  if(vehicleData.isConnected){
-    document.getElementById('textbox-address').setAttribute("disabled", true);
-    document.getElementById('textbox-baudrate').setAttribute("disabled", true);
-
-    document.getElementById('btn-connect').setAttribute("style", "display: none; width: 100%;");
-    document.getElementById('btn-disconnect').setAttribute("style", "display: block; width: 100%;");
-
-    document.getElementById('blink-status-connected').setAttribute("style", "display: block; width: 100%;");
-    document.getElementById('blink-status-disconnected').setAttribute("style", "display: none; width: 100%;");
-  }else{
-    document.getElementById('textbox-address').removeAttribute("disabled");
-    document.getElementById('textbox-baudrate').removeAttribute("disabled");
-
-    document.getElementById('btn-connect').setAttribute("style", "display: block; width: 100%;");
-    document.getElementById('btn-disconnect').setAttribute("style", "display: none; width: 100%;");
-
-    document.getElementById('blink-status-connected').setAttribute("style", "display: none; width: 100%;");
-    document.getElementById('blink-status-disconnected').setAttribute("style", "display: block; width: 100%;");
-  }
-}
-
-// -- End of Function switch vehicle -- //
