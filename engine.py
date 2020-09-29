@@ -89,6 +89,7 @@ def arm_and_takeoff(aTargetAltitude, id):
 
 
 app = Flask(__name__)
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
 @app.route("/")
 def home():
@@ -209,7 +210,7 @@ def api_connect():
             nvehicle = None
             # connection_string = str(addr) + ":" + str(baud) 
             c=0
-            while not nvehicle and c<5:
+            while not nvehicle and c<2:
                 try:
                     nvehicle = connect(str(addr), wait_ready=True, baud=int(baudrate))
                     nvehicle.id = id
@@ -223,9 +224,13 @@ def api_connect():
                     c+=1
                     time.sleep(2)
             return "oks"
+            if not nvehicle:
+                return jsonify(error=1,msg="Failed to Connect to Vehicle")
+            else:
+                return jsonify(error=0,msg="Connection success")
         except Exception as e:
             print(e)
-            return "Failed to Connect to Vehicle..."
+            return jsonify(error=1,msg="Failed to Connect to Vehicle")
 
 def connect_to_drone():
     global vehicles#
