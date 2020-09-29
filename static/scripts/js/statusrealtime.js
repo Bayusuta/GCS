@@ -4,6 +4,7 @@ var PointerInteraction = ol.interaction.Pointer;
 // -- Global Variable -- //
 
 var HomePoint_List = new Map();
+var VehicleData_List = new Map();
 var lastVehicleID = 0;
 var color_List = ["blue", "green", "red", "purple", "yellow"];
 
@@ -267,9 +268,46 @@ source.onmessage = function(event) {
 function addVehicle(){
   console.log("add Vehicle");
 
-  var markup = '<tr data-vehicle-id="' + lastVehicleID + '"><td><a class="nav-link" href="#"><i class="icon-plane text-'+color_List[HomePoint_List.size]+'"></i></a></td></tr>';
+  var markup = '<tr data-vehicle-id="'+lastVehicleID+'" onclick="switchVehicle('+lastVehicleID+')"><td><a class="nav-link" href="#"><i class="icon-plane text-'+color_List[HomePoint_List.size]+'"></i></a></td></tr>';
   $("#vehicle-list").append(markup);
-  HomePoint_List.set(lastVehicleID, [null,null]);  lastVehicleID++;
+
+  VehicleData_List.set(lastVehicleID, {address:"127.0.0.1:5670", baudrate:1000+lastVehicleID, isConnected:false});
+  HomePoint_List.set(lastVehicleID, [null,null]);
+  
+  switchVehicle(lastVehicleID);
+
+  lastVehicleID++;
 }
 
 // -- End of Function add new vehicle -- //
+
+// -- Function switch vehicle -- //
+
+function switchVehicle(vehicleID){
+  var vehicleData = VehicleData_List.get(Number(vehicleID));
+  console.log(vehicleData);
+
+  document.getElementById('textbox-address').value = vehicleData.address;
+  document.getElementById('textbox-baudrate').value = vehicleData.baudrate;
+
+  if(vehicleData.isConnected){
+    document.getElementById('textbox-address').setAttribute("disabled", true);
+    document.getElementById('textbox-baudrate').setAttribute("disabled", true);
+
+    document.getElementById('btn-connect').classList.add("btn-danger");
+    document.getElementById('btn-connect').innerHTML = '<i class="icon icon-refresh"></i>DISCONNECT';
+
+    document.getElementById('blink-status').classList.remove('bg-danger');
+    document.getElementById('blink-status').classList.remove('blink');
+    document.getElementById('blink-status').classList.add('bg-success');
+
+    document.getElementById('blink-status').innerHTML = '<center><h2 class="text-white">CONNECTED</h2></center>';
+  }else{
+    document.getElementById('textbox-address').removeAttribute("disabled");
+    document.getElementById('textbox-baudrate').removeAttribute("disabled");
+    document.getElementById('btn-connect').classList.add("btn-info");
+    document.getElementById('btn-connect').innerHTML = '<i class="icon icon-refresh"></i>CONNECT';
+  }
+}
+
+// -- End of Function switch vehicle -- //
