@@ -154,11 +154,16 @@
                 </div>
                 <div class="tab-content flex-grow-1" id="v-pills-tabContent" style="width: 257px;">
                     <div class="tab-pane fade show active" id="v-pills-profile" role="tabpanel" aria-labelledby="v-pills-profile-tab">
-                        <div class="relative brand-wrapper sticky b-b p-3 blink bg-danger" id="blink-status">
+                        <div class="relative brand-wrapper sticky b-b p-3 blink bg-danger" style="display: block;" id="blink-status-disconnected">
                         <!--<div class="relative brand-wrapper sticky b-b p-3 blink bg-success">-->
                             <center><h2 class="text-white">DISCONNECTED</h2></center>
                             <!--<center><h2 class="text-white">CONNECTED</h2></center>-->
                         </div>
+                        <div class="relative brand-wrapper sticky b-b p-3 bg-success" style="display: none;" id="blink-status-connected">
+                            <!--<div class="relative brand-wrapper sticky b-b p-3 blink bg-success">-->
+                                <center><h2 class="text-white">CONNECTED</h2></center>
+                                <!--<center><h2 class="text-white">CONNECTED</h2></center>-->
+                            </div>
                         <div class="sticky slimScroll">
                             <div class="p-2">
                                 <ul class="list-unstyled">
@@ -172,8 +177,12 @@
                                                 <input type="text" class="form-control" id="textbox-baudrate" placeholder="Baudrate" value="">
                                             </div>
                                             <div class="form-group">
-                                                <button class="btn btn-info" id="btn-connect" style="width: 100%;"><i class="icon icon-refresh"></i>CONNECT</button>
+                                                <!--connect button-->                                                
+                                                <button class="btn btn-info"   style="display: block; width: 100%;"  id="btn-connect"><i class="icon icon-refresh"></i>CONNECT</button>
+                                                <!--connecting button-->                                                
+                                                <button class="btn btn-warning" style="display: none; width: 100%;"  id="btn-connecting"><i class="icon icon-refresh"></i>CONNECTING</button>
                                                 <!--disconnect button-->
+                                                <button class="btn btn-danger" style="display: none; width: 100%;"    id="btn-disconnect"><i class="icon icon-power-off"></i>DISCONNECT</button>
                                                 <!--<button class="btn btn-danger"><i class="icon icon-power-off"></i>DISCONNECT</button>-->
                                             </div>
                                         </div>
