@@ -5,7 +5,10 @@ var PointerInteraction = ol.interaction.Pointer;
 
 var HomePoint_List = new Map();
 var VehicleData_List = new Map();
+var Overlay_List = new Map();
+
 var lastVehicleID = 0;
+var current_activeID = 0;
 var color_List = ["blue", "green", "red", "purple", "yellow"];
 
 // -- End of Global Variable -- //
@@ -129,9 +132,8 @@ var map = new ol.Map({
 
 $('#btn-connect').on('click', function(){
   // Change button animation
-  document.getElementById('btn-connect').classList.remove("btn-info");
-  document.getElementById('btn-connect').classList.add("btn-warning");
-  document.getElementById('btn-connect').innerHTML = '<i class="icon icon-refresh"></i>CONNECTING...';
+  document.getElementById('btn-connecting').setAttribute("style", "display: block; width: 100%;");
+  document.getElementById('btn-connect').setAttribute("style", "display: none; width: 100%;");
 
   console.log("Connecting ...");
   var address = $('#textbox-address').val();
@@ -141,41 +143,34 @@ $('#btn-connect').on('click', function(){
     method: 'PUT',
     url: '/api/connect',
     contentType : 'application/json',
-    data: JSON.stringify({ addr: address, baudrate: baudrate, id: lastVehicleID }),
+    data: JSON.stringify({ addr: address, baudrate: baudrate, id: current_activeID }),
   })
   .done(function( msg ) {
-    document.getElementById('btn-connect').classList.remove("btn-warning");
-
-
+    document.getElementById('btn-connecting').setAttribute("style", "display: none; width: 100%;");
     /* error:0 = connection success
        error: selain 0 = connection failed
        sementara yang error dianggap sukses dulu
     */
     if(msg.error == 0){
       alert("Connection failed");
-      document.getElementById('btn-connect').classList.add("btn-info");
-      document.getElementById('btn-connect').innerHTML = '<i class="icon icon-refresh"></i>CONNECT';
+      document.getElementById('btn-connect').setAttribute("style", "display: block; width: 100%;");
     }else if(msg.error == 1){
       alert("Connection success (aslinya failed)");
-      document.getElementById('btn-connect').classList.add("btn-danger");
-      document.getElementById('btn-connect').innerHTML = '<i class="icon icon-refresh"></i>DISCONNECT';
+      document.getElementById('btn-disconnect').setAttribute("style", "display: block; width: 100%;");
+      document.getElementById('blink-status-disconnected').setAttribute("style", "display: none; width: 100%;");
+      document.getElementById('blink-status-connected').setAttribute("style", "display: block; width: 100%;");
 
-      document.getElementById('blink-status').classList.remove('bg-danger');
-      document.getElementById('blink-status').classList.remove('blink');
-      document.getElementById('blink-status').classList.add('bg-success');
-
-      document.getElementById('blink-status').innerHTML = '<center><h2 class="text-white">CONNECTED</h2></center>';
       document.getElementById('textbox-address').setAttribute("disabled", true);
       document.getElementById('textbox-baudrate').setAttribute("disabled", true);
 
-      var coords = prompt("Enter lon,lat format: {\"lon\":,\"lat\":}");
+      var coords = prompt("Enter lon,lat format: {\"lon\":,\"lat\":}", '{"lon": 112.79758155388635,"lat":-7.2772675487336045}');
 
       // Sample Input:
       // {"lon": 112.79758155388635,"lat":-7.2772675487336045} //
       // {"lon": 112.79817163986962,"lat":-7.27737929405518} //
 
       var coordsobj = JSON.parse(coords);
-      addHomePoint([coordsobj.lon, coordsobj.lat], lastVehicleID);
+      addHomePoint([coordsobj.lon, coordsobj.lat], current_activeID);
     }else{
       alert("Unknown error");
     }
@@ -183,6 +178,24 @@ $('#btn-connect').on('click', function(){
 });
 
 // -- End of Connect Button Clicked -- //
+
+// -- Button Disconnect Clicked -- //
+
+$('#btn-disconnect').on('click', function(){
+  document.getElementById('blink-status-disconnected').setAttribute("style", "display: block; width: 100%;");
+  document.getElementById('blink-status-connected').setAttribute("style", "display: none; width: 100%;");
+
+  document.getElementById('textbox-address').removeAttribute("disabled");
+  document.getElementById('textbox-baudrate').removeAttribute("disabled");
+
+  // Remove Overlay //
+  map.removeOverlay(Overlay_List.get(Number(current_activeID)));
+
+  document.getElementById('btn-connect').setAttribute("style", "display: block; width: 100%;");
+  document.getElementById('btn-disconnect').setAttribute("style", "display: none; width: 100%;");
+});
+
+// -- End of Button Disconnect Clicked -- //
 
 // -- Function : Add Home Point -- //
 
@@ -218,7 +231,10 @@ function addHomePoint(coordinate, id){
     positioning: 'center-center'
   });
 
-  map.addOverlay(Home_markerOverlay);
+  Overlay_List.set(id, Home_markerOverlay);
+
+  map.addOverlay(Overlay_List.get(Number(id)));
+  console.log("Add Overlay With ID: " + id);
   console.log(HomePoint_List);
 }
 
@@ -284,6 +300,7 @@ function addVehicle(){
 // -- Function switch vehicle -- //
 
 function switchVehicle(vehicleID){
+  current_activeID = vehicleID;
   var vehicleData = VehicleData_List.get(Number(vehicleID));
   console.log(vehicleData);
 
