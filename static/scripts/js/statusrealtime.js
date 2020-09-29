@@ -127,6 +127,11 @@ var map = new ol.Map({
 // -- Connect Button Clicked -- //
 
 $('#btn-connect').on('click', function(){
+  // Change button animation
+  document.getElementById('btn-connect').classList.remove("btn-info");
+  document.getElementById('btn-connect').classList.add("btn-warning");
+  document.getElementById('btn-connect').innerHTML = '<i class="icon icon-refresh"></i>CONNECTING...';
+
   console.log("Connecting ...");
   var address = $('#textbox-address').val();
   var baudrate = $('#textbox-baudrate').val();
@@ -137,28 +142,44 @@ $('#btn-connect').on('click', function(){
     contentType : 'application/json',
     data: JSON.stringify({ addr: address, baudrate: baudrate, id: lastHomeID }),
   })
-  .done(function(msg) {
-    $('#text-connection').html('<center><h2 id="connection" class="text-white">CONNECTED</h2></center>');
-    console.log('vehicle connected')
+  .done(function( msg ) {
+    document.getElementById('btn-connect').classList.remove("btn-warning");
+
+
+    /* error:0 = connection success
+       error: selain 0 = connection failed
+       sementara yang error dianggap sukses dulu
+    */
+    if(msg.error == 0){
+      alert("Connection failed");
+      document.getElementById('btn-connect').classList.add("btn-info");
+      document.getElementById('btn-connect').innerHTML = '<i class="icon icon-refresh"></i>CONNECT';
+    }else if(msg.error == 1){
+      alert("Connection success (aslinya failed)");
+      document.getElementById('btn-connect').classList.add("btn-danger");
+      document.getElementById('btn-connect').innerHTML = '<i class="icon icon-refresh"></i>DISCONNECT';
+
+      document.getElementById('blink-status').classList.remove('bg-danger');
+      document.getElementById('blink-status').classList.remove('blink');
+      document.getElementById('blink-status').classList.add('bg-success');
+
+      document.getElementById('blink-status').innerHTML = '<center><h2 class="text-white">CONNECTED</h2></center>';
+      document.getElementById('textbox-address').setAttribute("disabled", true);
+      document.getElementById('textbox-baudrate').setAttribute("disabled", true);
+
+      var coords = prompt("Enter lon,lat format: {\"lon\":,\"lat\":}");
+
+      // Sample Input:
+      // {"lon": 112.79758155388635,"lat":-7.2772675487336045} //
+      // {"lon": 112.79817163986962,"lat":-7.27737929405518} //
+
+      var coordsobj = JSON.parse(coords);
+      addHomePoint([coordsobj.lon, coordsobj.lat], lastHomeID);
+      lastHomeID++;
+    }else{
+      alert("Unknown error");
+    }
   });
-  // .done(function( msg ) {
-  //   if(msg.error == 0){
-  //     alert("Connection failed");
-  //   }else if(msg.error == 1){
-  //     alert("Connection success (aslinya failed)");
-  //     var coords = prompt("Enter lon,lat format: {\"lon\":,\"lat\":}");
-
-  //     // Sample Input:
-  //     // {"lon": 112.79758155388635,"lat":-7.2772675487336045} //
-  //     // {"lon": 112.79817163986962,"lat":-7.27737929405518} //
-
-  //     var coordsobj = JSON.parse(coords);
-  //     addHomePoint([coordsobj.lon, coordsobj.lat], lastHomeID);
-  //     lastHomeID++;
-  //   }else{
-  //     alert("Unknown error");
-  //   }
-  // });
 });
 
 // -- End of Connect Button Clicked -- //
@@ -203,7 +224,25 @@ function addHomePoint(coordinate, id){
 
 // -- End of Function : Add Home Point -- //
 
-// Global msg//
+
+// -- Function when sidebar collapsed -- //
+
+$('#push-menu').on('click', function(){
+  // console.log(document.getElementById('page-body').classList);
+  if(document.getElementById('page-body').classList.contains('sidebar-collapse')){
+    console.log("Not colapsed");
+    document.getElementById('header').setAttribute('style', 'left: 350px;');
+  }else{
+    console.log("Colapsed");
+    document.getElementById('header').setAttribute('style', 'left: 20px;');
+  }
+});
+
+// -- End of Function when sidebar collapsed -- //
+
+
+// -- Global msg -- //
+
 var globmsg = null;
 
 var source = new EventSource('/api/sse/state');
@@ -222,3 +261,5 @@ source.onmessage = function(event) {
   $('#header-gspeed').html('<strong id="header-alt" style="color: #000;">' + msg.gspeed.toFixed(3) +'</strong>');
   $('#header-yaw').html('<strong id="header-alt" style="color: #000;">' + msg.heading +'</strong>');
 };
+
+// -- End of Global Message -- //
