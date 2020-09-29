@@ -187,6 +187,10 @@ $('#btn-connect').on('click', function(){
 // -- Button Disconnect Clicked -- //
 
 $('#btn-disconnect').on('click', function(){
+
+  var tempVehicleData = VehicleData_List.get(current_activeID);
+  VehicleData_List.set(current_activeID, {address:tempVehicleData.address, baudrate:tempVehicleData.baudrate, isConnected:false});
+
   document.getElementById('blink-status-disconnected').setAttribute("style", "display: block; width: 100%;");
   document.getElementById('blink-status-connected').setAttribute("style", "display: none; width: 100%;");
 
