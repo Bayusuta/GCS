@@ -223,7 +223,7 @@ def api_connect():
                     print('waiting for connection... (%s)' % str(e))
                     c+=1
                     time.sleep(2)
-            return "oks"
+#             return "oks"
             if not nvehicle:
                 return jsonify(error=1,msg="Failed to Connect to Vehicle")
             else:
