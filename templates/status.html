@@ -154,7 +154,7 @@
                 </div>
                 <div class="tab-content flex-grow-1" id="v-pills-tabContent" style="width: 257px;">
                     <div class="tab-pane fade show active" id="v-pills-profile" role="tabpanel" aria-labelledby="v-pills-profile-tab">
-                        <div id="status-disconnect" class="relative brand-wrapper sticky b-b p-3 bg-danger" id="blink-status" style="display:block;">
+                        <div id="status-disconnect" class="relative brand-wrapper sticky b-b p-3 bg-danger" style="display:block;">
                             <center><h2 class="text-white">DISCONNECTED</h2></center>
                         </div>
                         <div id="status-connect" class="relative brand-wrapper sticky b-b p-3 bg-success" style="display:none;">
@@ -175,8 +175,12 @@
                                             <div class="form-group">
                                                 <!--connect button-->
                                                 <button class="btn btn-info" id="btn-connect" style="width: 100%; display: block;"><i class="icon icon-refresh"></i>CONNECT</button>
+                                                <!--connecting button-->                                                
+                                                <button class="btn btn-warning" style="display: none; width: 100%;"  id="btn-connecting"><i class="icon icon-refresh"></i>CONNECTING...</button>
                                                 <!--disconnect button-->
                                                 <button class="btn btn-danger" id="btn-disconnect" style="width: 100%; display: none;"><i class="icon icon-power-off"></i>DISCONNECT</button>
+                                                <!--disconnecting button-->
+                                                <button class="btn btn-danger" id="btn-disconnecting" style="width: 100%; display: none;"><i class="icon icon-refresh"></i>DISCONNECTING...</button>
                                             </div>
                                         </div>
                                     </li>
@@ -267,26 +271,16 @@
                 <div class="table-responsive">
                     <table id="recent-orders" class="table table-hover mb-0 ps-container ps-theme-default">
                         <tbody id="table-vehiclelist">
-                        <tr>
+
+                        </tbody>
+                    </table>
+                    <table id="recent-orders" class="table table-hover mb-0 ps-container ps-theme-default">
+                        <tbody>
+                        <tr id="btn-addvehicle">
                             <td>
-                                <button id="btn-addvehicle" style="border: none; background: none; width: 100%;"><i class="icon-add_circle text-dark"></i></button>
+                                <div style="border: none; background: none; width: 100%; margin-left:auto; margin-right:auto;"><center><i class="icon-add_circle text-dark"></i></center></div>
                             </td>
                         </tr>
-                        <tr class="bg-light">
-                            <td>
-                                <button id="icon-vehicle-0" onclick="selectVehicle(0)" style="border: none; background: none; width: 100%;"><i class="icon-plane text-red"></i></button>
-                            </td>
-                        </tr>
-                        <!-- <tr>
-                            <td>
-                                <a class="nav-link" href=""><i class="icon-plane text-red"></i></a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <a class="nav-link" href=""><i class="icon-plane text-green"></i></a>
-                            </td>
-                        </tr> -->
                         </tbody>
                     </table>
                 </div>
@@ -300,6 +294,11 @@
 <!--/#app -->
 <script src="/static/scripts/js/app.js"></script>
 <script type="text/javascript" src="/static/scripts/js/statusrealtime.js"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#btn-addvehicle").click();
+    });
+</script>
 
 <script>(function($,d){$.each(readyQ,function(i,f){$(f)});$.each(bindReadyQ,function(i,f){$(d).bind("ready",f)})})(jQuery,document)</script>
 </body>
