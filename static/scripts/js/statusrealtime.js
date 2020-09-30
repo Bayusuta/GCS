@@ -339,7 +339,9 @@ $('#delete-vehicle').on('click', function(){
 
     var p3 = document.getElementById("icon-vehicle-"+ currentStatusDisplay);
     p3.parentNode.removeChild(p3);
-    currentStatusDisplay--;
+    while(!VehicleData_List.get(currentStatusDisplay)){
+      currentStatusDisplay--;
+    }
     selectVehicle(currentStatusDisplay);
   }
 });
