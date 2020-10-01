@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zxx">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../assets/img/basic/favicon.ico" type="image/x-icon">
+    <title>Bayusuta</title>
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/app.css">
+    <link rel="stylesheet" href="../assets/css/sweetalert.css">
+    <style>
+        .loader {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #F5F8FA;
+            z-index: 9998;
+            text-align: center;
+        }
+
+        .plane-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+        }
+    </style>
+    <!-- Js -->
+    <script>(function(w,d,u){w.readyQ=[];w.bindReadyQ=[];function p(x,y){if(x=="ready"){w.bindReadyQ.push(y);}else{w.readyQ.push(x);}};var a={ready:p,bind:p};w.$=w.jQuery=function(f){if(f===d||f===u){return a}else{p(f)}}})(window,document)</script>
+</head>
+<body class="light sidebar-mini sidebar-collapsex sidebar-expanded-on-hoverx sidebar-collapse">
+<!-- Pre loader -->
+<div id="loader" class="loader">
+    <div class="plane-container">
+        <div class="preloader-wrapper small active">
+            <div class="spinner-layer spinner-blue">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                <div class="circle"></div>
+            </div><div class="circle-clipper right">
+                <div class="circle"></div>
+            </div>
+            </div>
+
+            <div class="spinner-layer spinner-red">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                <div class="circle"></div>
+            </div><div class="circle-clipper right">
+                <div class="circle"></div>
+            </div>
+            </div>
+
+            <div class="spinner-layer spinner-yellow">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                <div class="circle"></div>
+            </div><div class="circle-clipper right">
+                <div class="circle"></div>
+            </div>
+            </div>
+
+            <div class="spinner-layer spinner-green">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                <div class="circle"></div>
+            </div><div class="circle-clipper right">
+                <div class="circle"></div>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!--Modal upload-->
+<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Upload Misi</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="missions" class="col-form-label">File Misi</label>
+                    <input type="file" name="missions" id="missions" >
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batalkan</button>
+                <button type="button" class="btn btn-primary">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--Modal tambah plane-->
+<div class="modal fade" id="tambahWahana" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Tambah Wahana</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="pilihWahana" class="col-form-label">Pilih Wahana</label>
+                    <select class="form-control" id="pilihWahana">
+                        <option value="">NAMA WAHANA 1</option>
+                        <option value="">NAMA WAHANA 2</option>
+                        <option value="">NAMA WAHANA 3</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batalkan</button>
+                <button type="button" class="btn btn-primary">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--app-->
+<div id="app">
+    <aside class="main-sidebar fixed offcanvas b-r sidebar-tabs" data-toggle='offcanvas'>
+        <div class="sidebar">
+            <div class="d-flex hv-100 align-items-stretch">
+                <div class="indigo text-white">
+                    <div class="nav mt-5 pt-5 flex-column nav-pills" id="v-pills-tab" role="tablist"
+                         aria-orientation="vertical">
+                        <a class="nav-link active" href="" aria-selected="true"><i class="icon-map"></i><h6 style="font-size: 8px">PLAN</h6></a>
+                        <a class="nav-link" href="status.html" aria-selected="false"><i class="icon-plane"></i><h6 style="font-size: 8px">STATUS</h6></a>
+                        <a class="nav-link" href="" aria-selected="false"><i class="icon-refresh"></i><h6 style="font-size: 8px">CALIBRATE</h6></a>
+                        <a class="nav-link" href="" aria-selected="false"><i class="icon-settings2"></i><h6 style="font-size: 8px">SETTING</h6></a>
+                        <a class="nav-link" href="" aria-selected="false"><i class="icon-help"></i><h6 style="font-size: 8px">HELP</h6></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
+    <!--main-->
+    <div class="has-sidebar-left has-sidebar-tabs">
+        <div class="container-fluid relative animatedParent animateOnce my-3">
+            <!--MAP DISINI-->
+            <div class="card no-b my-3 slimScrollDiv" style="bottom: 0; position: fixed; width: 90%; height: 250px;">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-1">
+                            <center>PLANES</center>
+                            <div class="row">
+                                <button class="btn btn-default" style="margin: 5px"><i class="icon-plane red-text"></i></button>
+                                <button class="btn btn-default" style="margin: 5px"><i class="icon-plane green-text"></i></button>
+                                <button class="btn btn-default" style="margin: 5px"><i class="icon-plane yellow-text"></i></button>
+                                <button class="btn btn-default" style="margin: 5px" data-toggle="modal" data-target="#tambahWahana"><i class="icon-plus dark-text"></i></button>
+                            </div>
+                        </div>
+                        <div class="col-md-10">
+                            <table class="table table-bordered table-hover data-tables"
+                                   data-options='{"searching":false, "scrollY": "140px", "scrollCollapse": true,"paging": false }' id="datatable" >
+                                <thead>
+                                <tr>
+                                    <th>Command</th>
+                                    <th>Lat</th>
+                                    <th>Long</th>
+                                    <th>Alt</th>
+                                    <th>Angle</th>
+                                    <th>Dist</th>
+                                    <th>Aksi</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td class="id">Waypoint</td>
+                                    <td>-7.1231412</td>
+                                    <td>112.123124</td>
+                                    <td>70</td>
+                                    <td>0.00</td>
+                                    <td>387.2</td>
+                                    <td>
+                                        <button type="button" class="btn btn-warning btn-sm" id="btnEdit" data-toggle="modal" data-target="#exampleModal">
+                                            <i class="icon-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-danger btn-sm" id="btnDelete" data-toggle="modal" data-target="#exampleModal">
+                                            <i class="icon-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <div class="col-md-1">
+                            MODE
+                            <div class="row">
+                                <button class="btn btn-success btn-sm" style="margin-bottom: 5px" disabled>AUTO</button>
+                                <button class="btn btn-info btn-sm">MANUAL</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--right sidebar-->
+    <aside class="control-sidebar fixed white" style="right: 0; width: auto">
+        <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: 695px;">
+            <div class="slimScroll" style="overflow: hidden; width: auto; height: 695px;">
+                <div class="table-responsive">
+                    <table id="recent-orders" class="table table-hover mb-0 ps-container ps-theme-default">
+                        <tbody>
+                        <tr class="bg-light">
+                            <td>
+                                <a class="nav-link" href=""><i class="icon-map-marker text-dark"></i></a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <a class="nav-link" href=""><i class="icon-hand-pointer-o text-dark"></i></a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <a class="nav-link" href="#" data-toggle="modal" data-target="#uploadModal"><i class="icon-upload text-dark"></i></a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <a class="nav-link" href=""><i class="icon-download text-dark"></i></a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="slimScrollBar" style="background: rgba(0, 0, 0, 0.95); width: 5px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 407.616px;"></div>
+            <div class="slimScrollRail" style="width: 5px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;"></div>
+        </div>
+    </aside>
+    <div class="control-sidebar-bg shadow white fixed"></div>
+</div>
+<!--/#app -->
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/sweetalert.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#datatable').on('click', '[id^=btnDelete]', function() {
+            var $item = $(this).closest("tr");
+//            var ID = $.trim($item.find(".id").text());
+
+            swal({
+                    title: "Ingin menghapus command?",
+                    text: "Command akan dihapus",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#26C6DA",
+                    confirmButtonText: "Ya, hapus!",
+                    cancelButtonText: "Tidak, batalkan!",
+                    closeOnConfirm: false,
+                    closeOnCancel: false
+                },
+                function(isConfirm){
+                    if (isConfirm) {
+                        swal("Berhasil", "Command berhasil dihapus", "success");
+                    } else {
+                        swal("Dibatalkan", "Command tidak jadi dihapus", "error");
+                    }
+                });
+        });
+    } );
+</script>
+
+<script>(function($,d){$.each(readyQ,function(i,f){$(f)});$.each(bindReadyQ,function(i,f){$(d).bind("ready",f)})})(jQuery,document)</script>
+</body>
+</html>
