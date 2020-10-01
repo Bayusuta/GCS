@@ -97,7 +97,7 @@ def index():
 
 @app.route("/status")
 def status():
-    return render_template('status.html', branding=False)
+    return render_template('plan.html', branding=False)
 
 @app.route("/marker-overlay")
 def marker_overlay():
