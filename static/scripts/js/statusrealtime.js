@@ -140,7 +140,7 @@ $('#btn-connect').on('click', function(){
   var address = $('#textbox-address').val();
   var baudrate = $('#textbox-baudrate').val();
 
-  VehicleData_List.set(currentStatusDisplay, {address:address, baudrate:baudrate, isConnected:false});
+  VehicleData_List.set(currentStatusDisplay, {address:address, baudrate:baudrate, isConnected:true});
 
   $.ajax({
     method: 'PUT',
@@ -204,10 +204,15 @@ $('#btn-disconnect').on('click', function(){
     document.getElementById("btn-disconnecting").style.display = "none";
     document.getElementById("btn-connect").style.display = "block";
 
+    //toggle status connect/disconnect
+    document.getElementById("status-connect").style.display = "block";
+    document.getElementById("status-disconnect").style.display = "none";
+
     // Update
-    var tempVehicleData = VehicleData_List.get(current_activeID);
+    var tempVehicleData = VehicleData_List.get(currentStatusDisplay);
     VehicleData_List.set(currentStatusDisplay, {address:tempVehicleData.address, baudrate:tempVehicleData.baudrate, isConnected:false});
-    VehicleOverlay_List.delete(currentStatusDisplay);  
+    selectVehicle(currentStatusDisplay);
+    //VehicleOverlay_List.delete(currentStatusDisplay);  
   });
 });
 // End Disconnect button clicked //
@@ -245,17 +250,19 @@ function addVehicleOverlay(coordinate, id){
 $('#btn-addvehicle').on('click', function(){
   //document.getElementById("table-vehiclelist")
 
-  $("#table-vehiclelist").append(
-    `<tr id="icon-vehicle-`+lastVehicleID+`" data-vehicle-id="`+lastVehicleID+`" onclick="selectVehicle(`+lastVehicleID+`)">
-      <td>
-          <div style="border: none; background: none; width: 100%; margin-left:auto; margin-right:auto;"><center><i class="icon-plane text-`+color_List[VehicleData_List.size]+`"></i></center></div>
-      </td>
-    </tr>`
-  );
-
-  VehicleData_List.set(lastVehicleID, {address:"127.0.0.1:5670", baudrate:1000+lastVehicleID, isConnected:false});
-  selectVehicle(lastVehicleID);
-  lastVehicleID++;
+  if(VehicleData_List.size<5){
+    $("#table-vehiclelist").append(
+      `<tr id="icon-vehicle-`+lastVehicleID+`" data-vehicle-id="`+lastVehicleID+`" onclick="selectVehicle(`+lastVehicleID+`)">
+        <td>
+            <div style="border: none; background: none; width: 100%; margin-left:auto; margin-right:auto;"><center><i class="icon-plane text-`+color_List[VehicleData_List.size]+`"></i></center></div>
+        </td>
+      </tr>`
+    );
+  
+    VehicleData_List.set(lastVehicleID, {address:null, baudrate:null, isConnected:false});
+    selectVehicle(lastVehicleID);
+    lastVehicleID++;
+  }
 });
 //end add vehicle // 
 
@@ -343,6 +350,7 @@ $('#delete-vehicle').on('click', function(){
       currentStatusDisplay--;
     }
     selectVehicle(currentStatusDisplay);
+    //VehicleOverlay_List.delete(currentStatusDisplay);  
   }
 });
 //end delete vehicle//
