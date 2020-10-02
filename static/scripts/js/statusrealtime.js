@@ -159,18 +159,22 @@ $('#btn-connect').on('click', function(){
       document.getElementById('btn-connect').classList.add("btn-info");
       document.getElementById('btn-connect').innerHTML = '<i class="icon icon-refresh"></i>CONNECT';
 
-      //toggle status connect/disconnect
-      document.getElementById("status-connect").style.display = "block";
-      document.getElementById("status-disconnect").style.display = "none";
+      // //toggle status connect/disconnect
+      // document.getElementById("status-connect").style.display = "block";
+      // document.getElementById("status-disconnect").style.display = "none";
 
       //toggle button connect/disconnect
       document.getElementById("btn-connecting").style.display = "none";
       document.getElementById("btn-disconnect").style.display = "block";
 
+      // //toggle button delete
+      // document.getElementById("delete-vehicle").style.display = "none";
+
       //disable textbox address && baudrate
       document.getElementById('textbox-address').setAttribute("disabled", true);
       document.getElementById('textbox-baudrate').setAttribute("disabled", true);
 
+      selectVehicle(currentStatusDisplay);
       addVehicleOverlay([msg.lon, msg.lat], currentStatusDisplay);
     }else if(msg.error == 1){
       alert("Connection failed");
@@ -204,9 +208,12 @@ $('#btn-disconnect').on('click', function(){
     document.getElementById("btn-disconnecting").style.display = "none";
     document.getElementById("btn-connect").style.display = "block";
 
-    //toggle status connect/disconnect
-    document.getElementById("status-connect").style.display = "block";
-    document.getElementById("status-disconnect").style.display = "none";
+    // //toggle status connect/disconnect
+    // document.getElementById("status-connect").style.display = "block";
+    // document.getElementById("status-disconnect").style.display = "none";
+
+    // //toggle delete button
+    // document.getElementById("delete-vehicle").style.display = "block";
 
     // Update
     var tempVehicleData = VehicleData_List.get(currentStatusDisplay);
@@ -308,6 +315,9 @@ function selectVehicle(id){
     //toggle status connect/disconnect
     document.getElementById("status-connect").style.display = "block";
     document.getElementById("status-disconnect").style.display = "none";
+
+    //toggle button delete
+    document.getElementById("delete-vehicle").style.display = "none";
   }else{
     document.getElementById('textbox-address').removeAttribute("disabled");
     document.getElementById('textbox-baudrate').removeAttribute("disabled");
@@ -319,6 +329,9 @@ function selectVehicle(id){
     //toggle status connect/disconnect
     document.getElementById("status-disconnect").style.display = "block";
     document.getElementById("status-connect").style.display = "none";
+
+    //toggle button delete
+    document.getElementById("delete-vehicle").style.display = "block";
   }
 
   $('#uavid').html('<span id="uavid" class="badge r-2 badge-success">STATUS UAVID : '+currentStatusDisplay+'</span>');
