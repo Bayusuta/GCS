@@ -247,6 +247,7 @@ function addVehicleOverlay(coordinate, id){
   VehicleOverlay_List.set(id, Vehicle_Overlay);
 
   map.addOverlay(VehicleOverlay_List.get(Number(id)));
+  map.getView().setCenter(ol.proj.transform([lon, lat], 'EPSG:4326', 'EPSG:3857'));
   console.log("Add Vehicle Overlay With ID: " + id);
 }
 
