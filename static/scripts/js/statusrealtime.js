@@ -249,10 +249,10 @@ function addVehicleOverlay(coordinate, id){
 //add vehicle //
 $('#btn-addvehicle').on('click', function(){
   //document.getElementById("table-vehiclelist")
-
+  // data-vehicle-id="`+lastVehicleID+`"
   if(VehicleData_List.size<5){
     $("#table-vehiclelist").append(
-      `<tr id="icon-vehicle-`+lastVehicleID+`" data-vehicle-id="`+lastVehicleID+`" onclick="selectVehicle(`+lastVehicleID+`)">
+      `<tr id="icon-vehicle-`+lastVehicleID+`" onclick="selectVehicle(`+lastVehicleID+`)">
         <td>
             <div style="border: none; background: none; width: 100%; margin-left:auto; margin-right:auto;"><center><i class="icon-plane text-`+color_List[VehicleData_List.size]+`"></i></center></div>
         </td>
@@ -283,6 +283,7 @@ $('#push-menu').on('click', function(){
 
 // select vehicle //
 function selectVehicle(id){
+  currentStatusDisplay = id;
   var tr = document.getElementsByTagName('tr');
   for(var i=0; i<tr.length; i++){
     tr[i].style.background = "none";
@@ -320,21 +321,20 @@ function selectVehicle(id){
     document.getElementById("status-connect").style.display = "none";
   }
 
-  currentStatusDisplay = id;
   $('#uavid').html('<span id="uavid" class="badge r-2 badge-success">STATUS UAVID : '+currentStatusDisplay+'</span>');
-  if(globmsg != null){
-    if(globmsg.id == currentStatusDisplay){
-      $('#header-alt').html('<strong id="header-alt" style="color: #000;">' + globmsg.alt +' m</strong>');
-      $('#header-vspeed').html('<strong id="header-alt" style="color: #000;">' + globmsg.vspeed +'</strong>');
-      $('#header-gspeed').html('<strong id="header-alt" style="color: #000;">' + globmsg.gspeed.toFixed(3) +'</strong>');
-      $('#header-yaw').html('<strong id="header-alt" style="color: #000;">' + globmsg.heading +'</strong>');
-    } else{
-      $('#header-alt').html('<strong id="header-alt" style="color: #000;">NAN m</strong>');
-      $('#header-vspeed').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
-      $('#header-gspeed').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
-      $('#header-yaw').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
-    }
-  }
+  // if(globmsg != null){
+  //   if(globmsg.id == currentStatusDisplay){
+  //     $('#header-alt').html('<strong id="header-alt" style="color: #000;">' + globmsg.alt +' m</strong>');
+  //     $('#header-vspeed').html('<strong id="header-alt" style="color: #000;">' + globmsg.vspeed +'</strong>');
+  //     $('#header-gspeed').html('<strong id="header-alt" style="color: #000;">' + globmsg.gspeed.toFixed(3) +'</strong>');
+  //     $('#header-yaw').html('<strong id="header-alt" style="color: #000;">' + globmsg.heading +'</strong>');
+  //   } else{
+  //     $('#header-alt').html('<strong id="header-alt" style="color: #000;">NAN m</strong>');
+  //     $('#header-vspeed').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
+  //     $('#header-gspeed').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
+  //     $('#header-yaw').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
+  //   }
+  // }
   console.log("currentStatusDisplay " + currentStatusDisplay);
 }
 // end select vehicle //
@@ -367,23 +367,23 @@ source.onmessage = function(event) {
     //map.getView().setCenter(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
   }
   globmsg = msg;
-
   if(msg.id == currentStatusDisplay){
-
+    console.log(msg);
     var CurrentOverlay = VehicleOverlay_List.get(currentStatusDisplay);
     CurrentOverlay.setPosition(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
     $(CurrentOverlay.getElement()).find('.heading').css('-webkit-transform', 'rotate(' + ((msg.heading) + 45) + 'deg)');
     
     $('#header-alt').html('<strong id="header-alt" style="color: #000;">' + msg.alt +' m</strong>');
-    $('#header-vspeed').html('<strong id="header-alt" style="color: #000;">' + msg.vspeed +'</strong>');
+    $('#header-vspeed').html('<strong id="header-alt" style="color: #000;">' + msg.vspeed.toFixed(3) +'</strong>');
     $('#header-gspeed').html('<strong id="header-alt" style="color: #000;">' + msg.gspeed.toFixed(3) +'</strong>');
     $('#header-yaw').html('<strong id="header-alt" style="color: #000;">' + msg.heading +'</strong>');
-  } else{
-    $('#header-alt').html('<strong id="header-alt" style="color: #000;">NAN m</strong>');
-    $('#header-vspeed').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
-    $('#header-gspeed').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
-    $('#header-yaw').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
-  }
+  } 
+  // else{
+  //   $('#header-alt').html('<strong id="header-alt" style="color: #000;">NAN m</strong>');
+  //   $('#header-vspeed').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
+  //   $('#header-gspeed').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
+  //   $('#header-yaw').html('<strong id="header-alt" style="color: #000;">NAN</strong>');
+  // }
 };
 
 // -- End of Global Message -- //

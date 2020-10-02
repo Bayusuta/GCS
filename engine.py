@@ -97,7 +97,7 @@ def index():
 
 @app.route("/status")
 def status():
-    return render_template('plan.html', branding=False)
+    return render_template('status.html', branding=False)
 
 @app.route("/marker-overlay")
 def marker_overlay():
@@ -109,7 +109,7 @@ def manualmission():
 
 
 listeners_location = []
-listeners_location
+# listeners_location
 
 from threading import Thread
 import time
@@ -229,11 +229,11 @@ def api_connect():
                     c+=1
                     time.sleep(2)
 #             return "oks"
-            nlon = vehicles.get(id).location.global_relative_frame.lon
-            nlat = vehicles.get(id).location.global_relative_frame.lat
             if not nvehicle:
                 return jsonify(error=1,msg="Failed to Connect to Vehicle")
             else:
+                nlon = vehicles.get(id).location.global_relative_frame.lon
+                nlat = vehicles.get(id).location.global_relative_frame.lat
                 return jsonify(error=0,msg="Connection success",lon=nlon,lat=nlat)
         except Exception as e:
             print(e)
