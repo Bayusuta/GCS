@@ -381,12 +381,12 @@ source.onmessage = function(event) {
     //map.getView().setCenter(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
   }
   globmsg = msg;
+  var CurrentOverlay = VehicleOverlay_List.get(msg.id);
+  CurrentOverlay.setPosition(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
+  $(CurrentOverlay.getElement()).find('.heading').css('-webkit-transform', 'rotate(' + ((msg.heading) + 45) + 'deg)');
   if(msg.id == currentStatusDisplay){
     console.log(msg);
-    var CurrentOverlay = VehicleOverlay_List.get(currentStatusDisplay);
-    CurrentOverlay.setPosition(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
-    $(CurrentOverlay.getElement()).find('.heading').css('-webkit-transform', 'rotate(' + ((msg.heading) + 45) + 'deg)');
-    
+
     $('#header-alt').html('<strong id="header-alt" style="color: #000;">' + msg.alt +' m</strong>');
     $('#header-vspeed').html('<strong id="header-alt" style="color: #000;">' + msg.vspeed.toFixed(3) +'</strong>');
     $('#header-gspeed').html('<strong id="header-alt" style="color: #000;">' + msg.gspeed.toFixed(3) +'</strong>');
