@@ -92,6 +92,28 @@
         input[type="text"]:disabled {
             background: #fff;
         }
+         /* marker overlay */
+         .marker {width:0; height:0;}
+
+        .marker  span {
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        box-sizing:border-box;
+        width: 30px;
+        height: 30px;
+        color:#fff;
+        background: #bdb22a;
+        border:solid 2px;
+        border-radius: 0 70% 70%;
+        box-shadow:0 0 2px #000;
+        cursor: pointer;
+        transform-origin:0 0;
+        transform: rotateZ(-135deg);
+        }
+
+        .marker b {transform: rotateZ(135deg)}
+
     </style>
     <!-- Js -->
     <script>(function(w,d,u){w.readyQ=[];w.bindReadyQ=[];function p(x,y){if(x=="ready"){w.bindReadyQ.push(y);}else{w.readyQ.push(x);}};var a={ready:p,bind:p};w.$=w.jQuery=function(f){if(f===d||f===u){return a}else{p(f)}}})(window,document)</script>
@@ -231,17 +253,22 @@
                 <div class="card-body" style="padding: 2px;">
                     <div class="row" style="margin-left: 0px; margin-right: 0px;">
                         <div class="sm-col">
-                            <button class="btn btn-default" title="Togle add waypoint" style="opacity: 0.7; margin: 5px; width: 40px; ">
+                            <button class="btn btn-default" title="Togle add waypoint" id="btn-toggle-marker" data-toggle="off" style="opacity: 0.7; margin: 5px; width: 40px; ">
                                 <i class="icon-map-marker text-yellow"></i>
                             </button>
                         </div>
                         <div class="sm-col">
-                            <button class="btn btn-default" title="Togle draw line" style="opacity: 0.7; margin: 5px; width: 40px; ">
+                            <button class="btn btn-default" title="Set Home" id="btn-set-home" data-toggle="off" style="opacity: 0.7; margin: 5px; width: 40px; ">
+                                <i class="icon-home2 text-green"></i>
+                            </button>
+                        </div>
+                        <div class="sm-col">
+                            <button class="btn btn-default" title="Togle draw line" id="btn-toggle-draw" data-toggle="off" style="opacity: 0.7; margin: 5px; width: 40px; ">
                                 <i class="icon-linear_scale text-dark"></i>
                             </button>
                         </div>
                         <div class="sm-col">
-                            <button class="btn btn-default" title="Togle drag waypoint" style="opacity: 0.7; margin: 5px; width: 40px; ">
+                            <button class="btn btn-default" title="Togle drag waypoint" id="btn-toggle-drag" data-toggle="off" style="opacity: 0.7; margin: 5px; width: 40px; ">
                                 <i class="icon-hand-pointer-o text-dark"></i>
                             </button>
                         </div>
@@ -302,16 +329,11 @@
                 <div class="table-responsive">
                     <table id="recent-orders" class="table table-hover mb-0 ps-container ps-theme-default">
                         <tbody id="table-vehiclelist">
-
-                        </tbody>
-                    </table>
-                    <table id="recent-orders" class="table table-hover mb-0 ps-container ps-theme-default">
-                        <tbody>
-                        <tr id="btn-addvehicle">
-                            <td>
-                                <div style="border: none; background: none; width: 100%; margin-left:auto; margin-right:auto;"><center><i class="icon-add_circle text-dark"></i></center></div>
-                            </td>
-                        </tr>
+                            <tr id="icon-vehicle-0" onclick="selectVehicle(0)">
+                                <td>
+                                    <div style="border: none; background: none; width: 100%; margin-left:auto; margin-right:auto;"><center><i class="icon-plane text-blue"></i></center></div>
+                                </td>
+                              </tr>
                         </tbody>
                     </table>
                 </div>
