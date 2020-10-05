@@ -10,7 +10,16 @@
     <!-- CSS -->
     <link rel="stylesheet" href="/static/scripts/css/app.css">
     <link rel="stylesheet" href="/static/scripts/css/sweetalert.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.0/css/ol.css" type="text/css">
     <style>
+
+        html, body{
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+        }
+
         .loader {
             position: fixed;
             left: 0;
@@ -27,10 +36,75 @@
             top: 50%;
             left: 50%;
         }
+
+        #app {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        #header { 
+            position: absolute;
+            left: 350px;
+            bottom: 0px;
+            color: white;
+            z-index: 100;
+            font-family: Sans;
+            margin-top: 20px;
+        }
+
+        .plane-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+        }
+
+        .map {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        .ol-zoom, .ol-attribution {
+            right: 100px !important;
+            left: initial;
+        }
+
+        body.disabled {
+         filter: grayscale(100%);
+         -webkit-filter: grayscale(100%);
+         filter: contrast(30%);
+         -webkit-filter: contrast(30%);
+        }
+
+        .marker {
+            width:0;
+            height:0;
+        }
+
+        .table td, .table th {
+            padding: .3rem;
+            vertical-align: middle;
+        }
+        
+        input[type="text"]:disabled {
+            background: #fff;
+        }
     </style>
     <!-- Js -->
     <script>(function(w,d,u){w.readyQ=[];w.bindReadyQ=[];function p(x,y){if(x=="ready"){w.bindReadyQ.push(y);}else{w.readyQ.push(x);}};var a={ready:p,bind:p};w.$=w.jQuery=function(f){if(f===d||f===u){return a}else{p(f)}}})(window,document)</script>
-</head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.4.0/build/ol.js" type="text/javascript"></script>
+    <script>
+        // Running in electron
+        try {
+            $ = jQuery = module.exports;
+            // If you want module.exports to be empty, uncomment:
+            // module.exports = {};
+        } catch(e) {}
+     </script></head>
 <body class="light sidebar-mini sidebar-collapsex sidebar-expanded-on-hoverx sidebar-collapse">
 <!-- Pre loader -->
 <div id="loader" class="loader">
@@ -131,7 +205,7 @@
 
 <!--app-->
 <div id="app">
-    <aside class="main-sidebar fixed offcanvas b-r sidebar-tabs" data-toggle='offcanvas'>
+    <aside class="main-sidebar fixed offcanvas b-r sidebar-tabs" style="min-width: 70px;" data-toggle='offcanvas'>
         <div class="sidebar">
             <div class="d-flex hv-100 align-items-stretch">
                 <div class="indigo text-white">
@@ -148,60 +222,69 @@
         </div>
     </aside>
     <!--main-->
-    <div class="has-sidebar-left has-sidebar-tabs">
-        <div class="container-fluid relative animatedParent animateOnce my-3">
+    <div class="has-sidebar-left has-sidebar-tabs" style="margin: 0; padding: 0; height: 100%; width: auto;">
+        <div class="container-fluid relative animatedParent animateOnce " style="margin: 0; padding: 0; height: 100%; width: 100%;">
             <!--MAP DISINI-->
-            <div class="card no-b my-3 slimScrollDiv" style="bottom: 0; position: fixed; width: 90%; height: 250px;">
+            <!-- <div style="background-color: aquamarine; height: 100px; width: 100px;"></div> -->
+            <div id="map" class="map"></div>
+            <div class="card no-b my-3 slimScrollDiv" style="background-color: transparent; bottom: 250px; position: fixed; width: auto; height: 50px; left: 105px; right:105px;">
+                <div class="card-body" style="padding: 2px;">
+                    <div class="row" style="margin-left: 0px; margin-right: 0px;">
+                        <div class="sm-col">
+                            <button class="btn btn-default" title="Togle add waypoint" style="opacity: 0.7; margin: 5px; width: 40px; ">
+                                <i class="icon-map-marker text-yellow"></i>
+                            </button>
+                        </div>
+                        <div class="sm-col">
+                            <button class="btn btn-default" title="Togle draw line" style="opacity: 0.7; margin: 5px; width: 40px; ">
+                                <i class="icon-linear_scale text-dark"></i>
+                            </button>
+                        </div>
+                        <div class="sm-col">
+                            <button class="btn btn-default" title="Togle drag waypoint" style="opacity: 0.7; margin: 5px; width: 40px; ">
+                                <i class="icon-hand-pointer-o text-dark"></i>
+                            </button>
+                        </div>
+                        <div class="sm-col">
+                            <button class="btn btn-default" title="Upload missions" style="opacity: 0.7; margin: 5px; width: 40px; ">
+                                <i class="icon-upload text-dark"></i>
+                            </button>
+                        </div>
+                        <div class="sm-col">
+                            <button class="btn btn-default" title="Save missions" style="opacity: 0.7; margin: 5px; width: 40px; ">
+                                <i class="icon-download text-dark"></i>
+                            </button>
+                        </div>
+                        <div class="sm-col">
+                            <button class="btn btn-info btn-sm" style="opacity: 0.7; margin: 5px; height: 38px;">AUTO WP</button>
+                        </div>
+                        <div class="sm-col">
+                            <p id="pointer-coordinate" style="background-color:rgba(0,60,136,.7); margin-bottom: 0px; margin-top: 10px; color: white;"><b>Longitude:</b> ??? <b>Latitude:</b> ??? </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card no-b my-3 slimScrollDiv" style="bottom: 0; position: fixed; width: auto; height: 250px; left: 105px; right:105px;">
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-1">
-                            <center>PLANES</center>
-                            <div class="row">
-                                <button class="btn btn-default" style="margin: 5px"><i class="icon-plane red-text"></i></button>
-                                <button class="btn btn-default" style="margin: 5px"><i class="icon-plane green-text"></i></button>
-                                <button class="btn btn-default" style="margin: 5px"><i class="icon-plane yellow-text"></i></button>
-                                <button class="btn btn-default" style="margin: 5px" data-toggle="modal" data-target="#tambahWahana"><i class="icon-plus dark-text"></i></button>
-                            </div>
-                        </div>
-                        <div class="col-md-10">
-                            <table class="table table-bordered table-hover data-tables"
-                                   data-options='{"searching":false, "scrollY": "140px", "scrollCollapse": true,"paging": false }' id="datatable" >
-                                <thead>
-                                <tr>
-                                    <th>Command</th>
-                                    <th>Lat</th>
-                                    <th>Long</th>
-                                    <th>Alt</th>
-                                    <th>Angle</th>
-                                    <th>Dist</th>
-                                    <th>Aksi</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr>
-                                    <td class="id">Waypoint</td>
-                                    <td>-7.1231412</td>
-                                    <td>112.123124</td>
-                                    <td>70</td>
-                                    <td>0.00</td>
-                                    <td>387.2</td>
-                                    <td>
-                                        <button type="button" class="btn btn-warning btn-sm" id="btnEdit" data-toggle="modal" data-target="#exampleModal">
-                                            <i class="icon-pencil"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-danger btn-sm" id="btnDelete" data-toggle="modal" data-target="#exampleModal">
-                                            <i class="icon-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                        <div class="col-md-1">
-                            MODE
-                            <div class="row">
-                                <button class="btn btn-success btn-sm" style="margin-bottom: 5px" disabled>AUTO</button>
-                                <button class="btn btn-info btn-sm">MANUAL</button>
+                        <div class="col-md-12" >
+                            <div class="box">
+                                <div class="box-body" style="height: 210px; overflow: auto;">
+                                    <table class="table table-bordered" >
+                                        <tbody id="tbody-mission-list">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Command</th>
+                                            <th width="210px">Lon</th>
+                                            <th width="210px">Lat</th>
+                                            <th>Alt</th>
+                                            <th>Angle</th>
+                                            <th>Dist</th>
+                                            <th width="210px">Aksi</th>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -210,30 +293,23 @@
         </div>
     </div>
     <!--right sidebar-->
-    <aside class="control-sidebar fixed white" style="right: 0; width: auto">
-        <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: 695px;">
-            <div class="slimScroll" style="overflow: hidden; width: auto; height: 695px;">
+    <aside class="control-sidebar fixed white" style="right: 0; width: 70px; height: 100%;">
+        <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: 100%; width: 100%;">
+            <div class="slimScroll" style="overflow: hidden; height: 100%; width: 100%;">
+                <div class="sidebar-header">
+                    <h6><b>Plane</b></h6>
+                </div>
                 <div class="table-responsive">
                     <table id="recent-orders" class="table table-hover mb-0 ps-container ps-theme-default">
+                        <tbody id="table-vehiclelist">
+
+                        </tbody>
+                    </table>
+                    <table id="recent-orders" class="table table-hover mb-0 ps-container ps-theme-default">
                         <tbody>
-                        <tr class="bg-light">
+                        <tr id="btn-addvehicle">
                             <td>
-                                <a class="nav-link" href=""><i class="icon-map-marker text-dark"></i></a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <a class="nav-link" href=""><i class="icon-hand-pointer-o text-dark"></i></a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <a class="nav-link" href="#" data-toggle="modal" data-target="#uploadModal"><i class="icon-upload text-dark"></i></a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <a class="nav-link" href=""><i class="icon-download text-dark"></i></a>
+                                <div style="border: none; background: none; width: 100%; margin-left:auto; margin-right:auto;"><center><i class="icon-add_circle text-dark"></i></center></div>
                             </td>
                         </tr>
                         </tbody>
@@ -276,6 +352,7 @@
         });
     } );
 </script>
+<script type="text/javascript" src="/static/scripts/js/planrealtime.js"></script>
 
 <script>(function($,d){$.each(readyQ,function(i,f){$(f)});$.each(bindReadyQ,function(i,f){$(d).bind("ready",f)})})(jQuery,document)</script>
 </body>
