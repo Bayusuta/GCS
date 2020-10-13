@@ -139,17 +139,24 @@ Page.addEventListener("keyup", function(event) {
 
 // -- Get Data from engine.py
 
-function GetData(){
-  $.ajax({
-    method: 'PUT',
-    url: '/api/get_data',
-    contentType : 'application/json',
-    data: JSON.stringify({ data: null }),
-  })
-  .done(function( msg ) {
-    console.log("Get Data:");
-    console.log(msg);
-  });
+function GetData() {
+	$.ajax({
+			method: 'PUT',
+			url: '/api/get_data',
+			contentType: 'application/json',
+			data: JSON.stringify({
+				data: null
+			}),
+		})
+		.done(function (msg) {
+			console.log("Get Data:");
+			// console.log(msg);
+			for (var i = 0; i < msg.data.length; i++) {
+				console.log(msg.data[i]);
+				VehicleData_List.set(msg.data[i].key, msg.data[i]);
+				addVehicle(msg.data[i].key, msg.data[i].vehicleColor);
+			}
+		});
 }
 
 var Page = document.getElementById("html_page");
@@ -323,6 +330,7 @@ function addVehicleOverlay(coordinate, id){
 $('#btn-addvehicle').on('click', function(){
   if(VehicleData_List.size<color_List.length){
     var vehicleColor;
+    
     for(var i=0; i<color_List.length; i++){
       if(!color_List[i].taken){
         vehicleColor = color_List[i].color;
@@ -330,6 +338,7 @@ $('#btn-addvehicle').on('click', function(){
         break;
       }
     }
+
     $("#table-vehiclelist").append(
       `<tr id="icon-vehicle-`+lastVehicleID+`" onclick="selectVehicle(`+lastVehicleID+`)">
         <td>
@@ -344,7 +353,30 @@ $('#btn-addvehicle').on('click', function(){
     TransferData();
   }
 });
-//end add vehicle // 
+//end add vehicle //
+
+// Begin of addVehicle()
+
+function addVehicle(id, color){
+  lastVehicleID=id+1;
+  for(var i=0; i<color_List.length; i++){
+    if(color_List[i].color == color){
+      color_List[i].taken = true;
+      break;
+    }
+  }
+
+	var tr = document.getElementsByTagName('tr');
+	$("#table-vehiclelist").append(
+		`<tr id="icon-vehicle-` + id + `" onclick="selectVehicle(` + id + `)">
+      <td>
+          <div style="border: none; background: none; width: 100%; margin-left:auto; margin-right:auto;"><center><i class="icon-plane text-` + color + `"></i></center></div>
+      </td>
+    </tr>`
+	);
+}
+
+// End of addVehicle()
 
 // -- Function when sidebar collapsed -- //
 
