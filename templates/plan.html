@@ -234,7 +234,7 @@
                     <div class="nav mt-5 pt-5 flex-column nav-pills" id="v-pills-tab" role="tablist"
                          aria-orientation="vertical">
                         <a class="nav-link active" href="" aria-selected="true"><i class="icon-map"></i><h6 style="font-size: 8px">PLAN</h6></a>
-                        <a class="nav-link" href="status.html" aria-selected="false"><i class="icon-plane"></i><h6 style="font-size: 8px">STATUS</h6></a>
+                        <a class="nav-link" href="/status" aria-selected="false"><i class="icon-plane"></i><h6 style="font-size: 8px">STATUS</h6></a>
                         <a class="nav-link" href="" aria-selected="false"><i class="icon-refresh"></i><h6 style="font-size: 8px">CALIBRATE</h6></a>
                         <a class="nav-link" href="" aria-selected="false"><i class="icon-settings2"></i><h6 style="font-size: 8px">SETTING</h6></a>
                         <a class="nav-link" href="" aria-selected="false"><i class="icon-help"></i><h6 style="font-size: 8px">HELP</h6></a>
@@ -329,11 +329,11 @@
                 <div class="table-responsive">
                     <table id="recent-orders" class="table table-hover mb-0 ps-container ps-theme-default">
                         <tbody id="table-vehiclelist">
-                            <tr id="icon-vehicle-0" onclick="selectVehicle(0)">
+                            <!-- <tr id="icon-vehicle-0" onclick="selectVehicle(0)">
                                 <td>
                                     <div style="border: none; background: none; width: 100%; margin-left:auto; margin-right:auto;"><center><i class="icon-plane text-blue"></i></center></div>
                                 </td>
-                              </tr>
+                              </tr> -->
                         </tbody>
                     </table>
                 </div>
@@ -347,8 +347,11 @@
 <!--/#app -->
 <script src="/static/scripts/js/app.js"></script>
 <script src="/static/scripts/js/sweetalert.min.js"></script>
+<script type="text/javascript" src="/static/scripts/js/planrealtime.js"></script>
 <script>
-    $(document).ready(function() {
+    $(document).ready(function(){
+        GetData();
+        
         $('#datatable').on('click', '[id^=btnDelete]', function() {
             var $item = $(this).closest("tr");
 //            var ID = $.trim($item.find(".id").text());
@@ -374,7 +377,6 @@
         });
     } );
 </script>
-<script type="text/javascript" src="/static/scripts/js/planrealtime.js"></script>
 
 <script>(function($,d){$.each(readyQ,function(i,f){$(f)});$.each(bindReadyQ,function(i,f){$(d).bind("ready",f)})})(jQuery,document)</script>
 </body>
