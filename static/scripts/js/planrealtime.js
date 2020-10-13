@@ -199,9 +199,9 @@ function handleMoveEvent(evt) {
 		// Draw Line
 
 		if (draw_line.active && draw_line.new == false && draw_line.onMarker == false) {
-			Mission_List.get(Global_HomePointIndex).push(["TEMP", lon, lat]);
+			Mission_List.get(Number(Global_HomePointIndex)).push(["TEMP", lon, lat]);
 			UpdateLine();
-			Mission_List.get(Global_HomePointIndex).pop();
+			Mission_List.get(Number(Global_HomePointIndex)).pop();
 		}
 	}
 }
@@ -410,7 +410,7 @@ function addWayPointOverlay(coordinate, id) {
 			if (draw_line.new) {
 				alert("This is not Home Point, Try Again!");
 			} else {
-				Mission_List.get(Global_HomePointIndex).push(["POINT", thisPointID, null]);
+				Mission_List.get(Number(Global_HomePointIndex)).push(["POINT", thisPointID, null]);
         UpdateLine();
         // style_Arrow = [];
         generateStyleArrow();
@@ -442,9 +442,9 @@ function addWayPointOverlay(coordinate, id) {
 		if (draw_line.active) {
 			var converted = convertToLonLat(Overlay_WayPoint_List.get(Number(id)).getPosition()[0], Overlay_WayPoint_List.get(Number(id)).getPosition()[1]);
 			console.log(converted);
-			Mission_List.get(Global_HomePointIndex).push(["TEMP", converted[0], converted[1]]);
+			Mission_List.get(Number(Global_HomePointIndex)).push(["TEMP", converted[0], converted[1]]);
 			UpdateLine();
-			Mission_List.get(Global_HomePointIndex).pop();
+			Mission_List.get(Number(Global_HomePointIndex)).pop();
 		}
 	});
 
@@ -492,11 +492,11 @@ function addHomePointOverlay(coordinate, id) {
 			if (draw_line.new){
         Global_HomePointIndex = thisPointID;
         console.log(thisPointID);
-				Mission_List.set(thisPointID, []);
-				Mission_List.get(thisPointID).push(["HOME", thisPointID, null]);
+				Mission_List.set(Number(thisPointID), []);
+				Mission_List.get(Number(thisPointID)).push(["HOME", thisPointID, null]);
 				draw_line.new = false;
 			} else {
-				Mission_List.get(thisPointID).push(["HOME", thisPointID, null]);
+				Mission_List.get(Number(thisPointID)).push(["HOME", thisPointID, null]);
 				draw_line.active = false;
         draw_line.new = false;
 				$('#btn-toggle-draw').click();
@@ -533,9 +533,9 @@ function addHomePointOverlay(coordinate, id) {
 		if (draw_line.active) {
 			var converted = convertToLonLat(Overlay_HomePoint_List.get(Number(id)).getPosition()[0], Overlay_HomePoint_List.get(Number(id)).getPosition()[1]);
 			if (Global_HomePointIndex) {
-				Mission_List.get(Global_HomePointIndex).push(["TEMP", converted[0], converted[1]]);
+				Mission_List.get(Number(Global_HomePointIndex)).push(["TEMP", converted[0], converted[1]]);
 				UpdateLine();
-				Mission_List.get(Global_HomePointIndex).pop();
+				Mission_List.get(Number(Global_HomePointIndex)).pop();
 			}
 		}
 	});
@@ -626,6 +626,7 @@ $('#btn-toggle-drag').on('click', function () {
 // Begin of selectVehicle()
 
 function selectVehicle(id) {
+	console.log("Select vehicle : " + id);
 	currentStatusDisplay = id;
 
 	var tr = document.getElementsByTagName('tr');
@@ -643,19 +644,20 @@ function selectVehicle(id) {
     document.getElementById("btn-set-home").setAttribute("disabled", true);
   }
 
+  console.log(Mission_List);
+  document.getElementById("tbody-mission-list").innerHTML = `
+  <tr>
+	<th>#</th>
+	<th>Command</th>
+	<th width="210px">Lon</th>
+	<th width="210px">Lat</th>
+	<th>Alt</th>
+	<th>Angle</th>
+	<th>Dist</th>
+	<th width="210px">Aksi</th>
+  </tr>
+  `;
 	Mission_List.forEach(function (items, key) {
-    document.getElementById("tbody-mission-list").innerHTML = `
-    <tr>
-      <th>#</th>
-      <th>Command</th>
-      <th width="210px">Lon</th>
-      <th width="210px">Lat</th>
-      <th>Alt</th>
-      <th>Angle</th>
-      <th>Dist</th>
-      <th width="210px">Aksi</th>
-    </tr>
-    `;
 		console.log("KEY : " + key);
 		if (key == id) {
 			var missionPoints_ = [];
