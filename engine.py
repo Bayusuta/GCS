@@ -24,6 +24,8 @@ connection_string   = sitl.connection_string()
 vehicles = {}
 vehicle = None
 
+vehicle_dataList = []
+
 # Allow us to reuse sockets after the are bound.
 # http://stackoverflow.com/questions/25535975/release-python-flask-port-when-script-is-terminated
 socket.socket._bind = socket.socket.bind
@@ -98,6 +100,14 @@ def index():
 @app.route("/status")
 def status():
     return render_template('status.html', branding=False)
+
+@app.route("/plan")
+def plan():
+    return render_template('plan.html', branding=False)
+
+@app.route("/plan2")
+def plan2():
+    return render_template('plan2.html', branding=False)
 
 @app.route("/marker-overlay")
 def marker_overlay():
@@ -251,6 +261,7 @@ def api_disconnect():
             except Exception as e:
                 print(e)
                 return "failed"
+
 def connect_to_drone():
     global vehicles#
     nvehicle = None#
@@ -269,6 +280,37 @@ def connect_to_drone():
     vehicles[0].flush()
 
     print('connected!')
+
+# api transfer data to engine.py
+@app.route("/api/update_data", methods=['POST','PUT'])
+def update_data():
+    global vehicle_dataList
+    if request.method =='POST' or request.method == 'PUT':
+            try:
+                data = request.json['data']
+                vehicle_dataList = []
+                for value in data:
+                    vehicle_dataList.append(value)
+                print(vehicle_dataList)
+                return "success"
+            except Exception as e:
+                print(e)
+                return "failed"
+
+# api transfer data from engine.py
+@app.route("/api/get_data", methods=['POST','PUT'])
+def get_data():
+    global vehicle_dataList
+    if request.method =='POST' or request.method == 'PUT':
+            try:
+                datasend = ""
+                print("vehicle_dataList:")
+                print(vehicle_dataList)
+                return jsonify(error=0, data=vehicle_dataList)
+            except Exception as e:
+                print(e)
+                return "failed"
+
 
 # Never cache
 @app.after_request
