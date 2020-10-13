@@ -7,7 +7,16 @@ var VehicleData_List = new Map();
 var VehicleOverlay_List = new Map();
 
 var lastVehicleID = 0;
-var color_List = ["blue", "green", "red", "purple", "yellow"];
+var color_List = [
+  {color:"blue", taken:false},
+  {color:"red", taken:false},
+  {color:"purple", taken:false},
+  {color:"yellow", taken:false},
+  {color:"green", taken:false},
+  {color:"brown", taken:false},
+  {color:"lime", taken:false},
+  {color:"orange", taken:false}
+];
 var currentStatusDisplay = 0;
 
 var globmsg = null;
@@ -98,6 +107,61 @@ function handleUpEvent() {
 
 // -- END OF Map Mouse Event -- //
 
+// -- Transfer Data To engine.py
+
+function TransferData(){
+  var data = [];
+  VehicleData_List.forEach(function(items, key){
+    data.push(items);
+  });
+
+  $.ajax({
+    method: 'POST',
+    url: '/api/update_data',
+    contentType : 'application/json',
+    data: JSON.stringify({ data: data }),
+  })
+  .done(function( msg ) {
+    console.log("Transfer data:");
+    console.table(data);
+  });
+}
+
+var Page = document.getElementById("html_page");
+Page.addEventListener("keyup", function(event) {
+  if (event.keyCode === 68) {
+   event.preventDefault();
+   TransferData();
+  }
+});
+
+// -- End Transfer Data To engine.py
+
+// -- Get Data from engine.py
+
+function GetData(){
+  $.ajax({
+    method: 'PUT',
+    url: '/api/get_data',
+    contentType : 'application/json',
+    data: JSON.stringify({ data: null }),
+  })
+  .done(function( msg ) {
+    console.log("Get Data:");
+    console.log(msg);
+  });
+}
+
+var Page = document.getElementById("html_page");
+Page.addEventListener("keyup", function(event) {
+  if (event.keyCode === 70){
+   event.preventDefault();
+   GetData();
+  }
+});
+
+// -- End Get Data from engine.py
+
 // -- THE MAP -- //
 
 var map = new ol.Map({
@@ -140,7 +204,8 @@ $('#btn-connect').on('click', function(){
   var address = $('#textbox-address').val();
   var baudrate = $('#textbox-baudrate').val();
 
-  VehicleData_List.set(currentStatusDisplay, {address:address, baudrate:baudrate, isConnected:true});
+  var tempVehicleData = VehicleData_List.get(currentStatusDisplay);
+  VehicleData_List.set(currentStatusDisplay, {key:currentStatusDisplay, vehicleColor:tempVehicleData.vehicleColor, address:address, baudrate:baudrate, isConnected:true, home:[], missionList:[]});
 
   $.ajax({
     method: 'PUT',
@@ -217,7 +282,8 @@ $('#btn-disconnect').on('click', function(){
 
     // Update
     var tempVehicleData = VehicleData_List.get(currentStatusDisplay);
-    VehicleData_List.set(currentStatusDisplay, {address:tempVehicleData.address, baudrate:tempVehicleData.baudrate, isConnected:false});
+    VehicleData_List.set(currentStatusDisplay, {key:currentStatusDisplay, vehicleColor:tempVehicleData.vehicleColor, address:tempVehicleData.address, baudrate:tempVehicleData.baudrate, isConnected:false, home:tempVehicleData.home, missionList:tempVehicleData.missionList});
+
     selectVehicle(currentStatusDisplay);
     //VehicleOverlay_List.delete(currentStatusDisplay);  
   });
@@ -253,23 +319,29 @@ function addVehicleOverlay(coordinate, id){
 
 // -- End of Function : Add Vehicle Overlay -- //
 
-
 //add vehicle //
 $('#btn-addvehicle').on('click', function(){
-  //document.getElementById("table-vehiclelist")
-  // data-vehicle-id="`+lastVehicleID+`"
-  if(VehicleData_List.size<5){
+  if(VehicleData_List.size<color_List.length){
+    var vehicleColor;
+    for(var i=0; i<color_List.length; i++){
+      if(!color_List[i].taken){
+        vehicleColor = color_List[i].color;
+        color_List[i].taken = true;
+        break;
+      }
+    }
     $("#table-vehiclelist").append(
       `<tr id="icon-vehicle-`+lastVehicleID+`" onclick="selectVehicle(`+lastVehicleID+`)">
         <td>
-            <div style="border: none; background: none; width: 100%; margin-left:auto; margin-right:auto;"><center><i class="icon-plane text-`+color_List[VehicleData_List.size]+`"></i></center></div>
+            <div style="border: none; background: none; width: 100%; margin-left:auto; margin-right:auto;"><center><i class="icon-plane text-`+vehicleColor+`"></i></center></div>
         </td>
       </tr>`
     );
-  
-    VehicleData_List.set(lastVehicleID, {address:null, baudrate:null, isConnected:false});
+
+    VehicleData_List.set(lastVehicleID, {key:lastVehicleID, vehicleColor:vehicleColor, address:null, baudrate:null, isConnected:false, home:[], missionList:[]});
     selectVehicle(lastVehicleID);
     lastVehicleID++;
+    TransferData();
   }
 });
 //end add vehicle // 
@@ -356,6 +428,12 @@ function selectVehicle(id){
 // Delete vehicle //
 $('#delete-vehicle').on('click', function(){
   if(currentStatusDisplay!=0){
+    var tempVehicleData = VehicleData_List.get(currentStatusDisplay);
+    for(var i=0; i<color_List.length; i++){
+      if(color_List[i].color == tempVehicleData.vehicleColor){
+        color_List[i].taken = false;
+      }
+    }
     VehicleData_List.delete(currentStatusDisplay);
 
     var p3 = document.getElementById("icon-vehicle-"+ currentStatusDisplay);
@@ -364,6 +442,7 @@ $('#delete-vehicle').on('click', function(){
       currentStatusDisplay--;
     }
     selectVehicle(currentStatusDisplay);
+    TransferData();
     //VehicleOverlay_List.delete(currentStatusDisplay);  
   }
 });
