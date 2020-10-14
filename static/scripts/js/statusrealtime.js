@@ -153,10 +153,14 @@ function GetData() {
 			// console.log(msg);
 			for (var i = 0; i < msg.data.length; i++) {
 				console.log(msg.data[i]);
-				VehicleData_List.set(msg.data[i].key, msg.data[i]);
+        VehicleData_List.set(msg.data[i].key, msg.data[i]);
 				addVehicle(msg.data[i].key, msg.data[i].vehicleColor);
+        if(msg.data[i].isConnected){ // Has overlay
+          addVehicleOverlay([0, 0], msg.data[i].key);
+          selectVehicle(msg.data[i].key);
+        }
 			}
-		});
+    });    
 }
 
 var Page = document.getElementById("html_page");
@@ -211,9 +215,6 @@ $('#btn-connect').on('click', function(){
   var address = $('#textbox-address').val();
   var baudrate = $('#textbox-baudrate').val();
 
-  var tempVehicleData = VehicleData_List.get(currentStatusDisplay);
-  VehicleData_List.set(currentStatusDisplay, {key:currentStatusDisplay, vehicleColor:tempVehicleData.vehicleColor, address:address, baudrate:baudrate, isConnected:true, home:[], missionList:[]});
-
   $.ajax({
     method: 'PUT',
     url: '/api/connect',
@@ -228,12 +229,10 @@ $('#btn-connect').on('click', function(){
     */
     if(msg.error == 0){
       alert("Connection Success");
-      document.getElementById('btn-connect').classList.add("btn-info");
-      document.getElementById('btn-connect').innerHTML = '<i class="icon icon-refresh"></i>CONNECT';
 
-      // //toggle status connect/disconnect
-      // document.getElementById("status-connect").style.display = "block";
-      // document.getElementById("status-disconnect").style.display = "none";
+      var tempVehicleData = VehicleData_List.get(currentStatusDisplay);
+      VehicleData_List.set(currentStatusDisplay, {key:currentStatusDisplay, vehicleColor:tempVehicleData.vehicleColor, address:address, baudrate:baudrate, isConnected:true, home:[], missionList:[]});
+      TransferData();
 
       //toggle button connect/disconnect
       document.getElementById("btn-connecting").style.display = "none";
@@ -290,7 +289,7 @@ $('#btn-disconnect').on('click', function(){
     // Update
     var tempVehicleData = VehicleData_List.get(currentStatusDisplay);
     VehicleData_List.set(currentStatusDisplay, {key:currentStatusDisplay, vehicleColor:tempVehicleData.vehicleColor, address:tempVehicleData.address, baudrate:tempVehicleData.baudrate, isConnected:false, home:tempVehicleData.home, missionList:tempVehicleData.missionList});
-
+    TransferData();
     selectVehicle(currentStatusDisplay);
     //VehicleOverlay_List.delete(currentStatusDisplay);  
   });
@@ -488,7 +487,7 @@ source.onmessage = function(event) {
   var msg = JSON.parse(event.data);
   if (!globmsg) {
     console.log('FIRST', msg);
-    $('body').removeClass('disabled')
+    $('body').removeClass('disabled');
     //map.getView().setCenter(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
   }
   globmsg = msg;
@@ -497,7 +496,9 @@ source.onmessage = function(event) {
   $(CurrentOverlay.getElement()).find('.heading').css('-webkit-transform', 'rotate(' + ((msg.heading) + 45) + 'deg)');
   if(msg.id == currentStatusDisplay){
     console.log(msg);
-
+    if(document.getElementById('toggle-centermap').checked){
+      map.getView().setCenter(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
+    }
     $('#header-alt').html('<strong id="header-alt" style="color: #000;">' + msg.alt +' m</strong>');
     $('#header-vspeed').html('<strong id="header-alt" style="color: #000;">' + msg.vspeed.toFixed(3) +'</strong>');
     $('#header-gspeed').html('<strong id="header-alt" style="color: #000;">' + msg.gspeed.toFixed(3) +'</strong>');
