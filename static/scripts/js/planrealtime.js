@@ -1,7 +1,7 @@
 var transform = ol.proj.getTransform('EPSG:3857', 'EPSG:4326');
 var PointerInteraction = ol.interaction.Pointer;
 
-// -- Global Variable tes github -- //
+// -- Global Variable -- //
 
 var VehicleData_List = new Map();
 var VehicleOverlay_List = new Map();
@@ -243,22 +243,23 @@ function TransferData() {
 
 function GetData() {
 	$.ajax({
-			method: 'PUT',
-			url: '/api/get_data',
-			contentType: 'application/json',
-			data: JSON.stringify({
-				data: null
-			}),
-		})
-		.done(function (msg) {
-			console.log("Get Data:");
-			// console.log(msg);
-			for (var i = 0; i < msg.data.length; i++) {
-				console.log(msg.data[i]);
-				VehicleData_List.set(msg.data[i].key, msg.data[i]);
-				addVehicle(msg.data[i].key, msg.data[i].vehicleColor);
-			}
-		});
+		method: 'PUT',
+		url: '/api/get_data',
+		contentType: 'application/json',
+		data: JSON.stringify({
+			data: null
+		}),
+	})
+	.done(function (msg) {
+		console.log("Get Data:");
+		// console.log(msg);
+		for (var i = 0; i < msg.data.length; i++) {
+			console.log(msg.data[i]);
+			VehicleData_List.set(msg.data[i].key, msg.data[i]);
+			addVehicle(msg.data[i].key, msg.data[i].vehicleColor);
+		}
+		selectVehicle(msg.data[msg.data.length-1].key);
+	});
 }
 
 // -- End Get Data from engine.py
@@ -338,27 +339,44 @@ function UpdateLine() {
 // -- Add Mission Row -- //
 
 function addMissionRow(lon, lat, id, type) {
-	var commandList = "";
-	if (type == 1) {
-		var commandList = `<select name="commandList" id="commandList" style="border:none; width:100%;">
-        <option selected="" value="1">Home Point</option>
-        <option value="2">Way Point</option>
-        <option value="3">Test 3</option>
-        <option value="4">Test 4</option>
-        </select>`;
-	} else {
-		var commandList = `<select name="commandList" id="commandList" style="border:none; width:100%;">
-        <option value="1">Home Point</option>
-        <option selected="" value="2">Way Point</option>
-        <option value="3">Test 3</option>
-        <option value="4">Test 4</option>
-        </select>`;
-	}
+	var listCommand = `
+	<select name="commandList" id="commandList" style="border:none; width:100%;">
+		<option value="16" selected="">WAYPOINT</option>
+		<option value="82" >SPLINE_WAYPOINT</option>
+		<option value="18" >LOITER_TURNS</option>
+		<option value="19" >LOITER_TIME</option>
+		<option value="17" >LOITER_UNLIM</option>
+		<option value="20" >RETURN_TO_LAUNCH</option>
+		<option value="21" >LAND</option>
+		<option value="22" >TAKEOFF</option>
+		<option value="93" >DELAY</option>
+		<option value="92" >GUIDED_ENABLE</option>
+		<option value="94" >PAYLOAD_PLACE</option>
+		<option value="222" >DO_GUIDED_LIMITS</option>
+		<option value="42600" >DO_WINCH</option>
+		<option value="201" >DO_SET_ROI</option>
+		<option value="112" >CONDITION_DELAY</option>
+		<option value="113" >CONDITION_CHANGE_ALT</option>
+		<option value="114" >CONDITION_DISTANCE</option>
+		<option value="115" >CONDITION_YAW</option>
+		<option value="177" >DO_JUMP</option>
+		<option value="178" >DO_CHANGE_SPEED</option>
+		<option value="211" >DO_GRIPPER</option>
+		<option value="208" >DO_PARACHUTE</option>
+		<option value="206" >DO_SET_CAM_TRIGG_DIST</option>
+		<option value="181" >DO_SET_RELAY</option>
+		<option value="183" >DO_SET_SERVO</option>
+		<option value="184" >DO_REPEAT_SERVO</option>
+		<option value="202" >DO_DIGICAM_CONFIGURE</option>
+		<option value="203" >DO_DIGICAM_CONTROL</option>
+		<option value="205" >DO_MOUNT_CONTROL</option>
+	</select>
+	`;
 
 	$("#tbody-mission-list").append(
 		`<tr>
             <td>` + id + `</td>
-            <td class="id">` + commandList + `</td>
+            <td class="id">` + listCommand + `</td>
             <td><input type="text" id="textbox-lon-` + id + `" style="border:none; width:100%;" disabled="true" value="` + lon + `"/></td>
             <td><input type="text" id="textbox-lat-` + id + `" style="border:none; width:100%;" disabled="true" value="` + lat + `"/></td>
             <td>-</td>
@@ -380,6 +398,41 @@ function addMissionRow(lon, lat, id, type) {
 }
 
 // -- End of Add Mission Row -- //
+
+// Begin Update Flight Table
+
+function UpdateFlightTable(id){
+	console.log(Mission_List);
+	document.getElementById("tbody-mission-list").innerHTML = `
+	<tr>
+	  <th>#</th>
+	  <th>Command</th>
+	  <th width="210px">Lon</th>
+	  <th width="210px">Lat</th>
+	  <th>Alt</th>
+	  <th>Angle</th>
+	  <th>Dist</th>
+	  <th width="210px">Aksi</th>
+	</tr>
+	`;
+	  Mission_List.forEach(function (items, key) {
+		  if (key == id) {
+			  // console.log("DATA BEGIN");
+			  counter = 1;
+			  items.forEach(function (data) {
+				  if (data[0] == "HOME") {
+					  addMissionRow(HomePoint_List.get(Number(data[1]))[0], HomePoint_List.get(Number(data[1]))[1], counter, 1);
+				  } else {
+					  addMissionRow(WayPoint_List.get(Number(data[1]))[0], WayPoint_List.get(Number(data[1]))[1], counter, 2);
+				  }
+				  counter++;
+			  });
+			  // console.log("DATA END")  
+		  }
+	  });
+}
+
+// End Update Flight Table
 
 // -- PUSH PointLayer source -- //
 
@@ -411,9 +464,10 @@ function addWayPointOverlay(coordinate, id) {
 				alert("This is not Home Point, Try Again!");
 			} else {
 				Mission_List.get(Number(Global_HomePointIndex)).push(["POINT", thisPointID, null]);
-        UpdateLine();
-        // style_Arrow = [];
-        generateStyleArrow();
+				UpdateLine();
+				UpdateFlightTable(currentStatusDisplay);
+				// style_Arrow = [];
+				generateStyleArrow();
 			}
 		}
 
@@ -422,10 +476,10 @@ function addWayPointOverlay(coordinate, id) {
 				var convertedCoordinate = convertToLonLat(map.getEventCoordinate(evt)[0], map.getEventCoordinate(evt)[1]);
 				Overlay_WayPoint_List.get(Number(id)).setPosition(map.getEventCoordinate(evt));
 				WayPoint_List.set(Number(thisPointID), convertedCoordinate);
-        UpdateLine();
-        console.log("Move Point");
-        // style_Arrow = [];
-        generateStyleArrow();
+				UpdateLine();
+				console.log("Move Point");
+				// style_Arrow = [];
+				generateStyleArrow();
 			}
 		}
 
@@ -485,27 +539,27 @@ function addHomePointOverlay(coordinate, id) {
 
 	MarkerOverlayContent.addEventListener('mousedown', function (evt) {
 		var thisPointID = this.getAttribute("data-home-id");
-    console.log("Home clicked");
-    console.log("data-home-id : " + thisPointID);
+		console.log("Home clicked");
+		console.log("data-home-id : " + thisPointID);
 
 		if (draw_line.active){
 			if (draw_line.new){
-        Global_HomePointIndex = thisPointID;
-        console.log(thisPointID);
+				Global_HomePointIndex = thisPointID;
+				console.log(thisPointID);
 				Mission_List.set(Number(thisPointID), []);
 				Mission_List.get(Number(thisPointID)).push(["HOME", thisPointID, null]);
 				draw_line.new = false;
 			} else {
 				Mission_List.get(Number(thisPointID)).push(["HOME", thisPointID, null]);
 				draw_line.active = false;
-        draw_line.new = false;
+		        draw_line.new = false;
 				$('#btn-toggle-draw').click();
 				Global_HomePointIndex = null;
-        UpdateLine();
-
-        // Finish drawing line
-        // style_Arrow = [];
-        generateStyleArrow();    
+				UpdateLine();
+				UpdateFlightTable(currentStatusDisplay);
+				// Finish drawing line
+				// style_Arrow = [];
+				generateStyleArrow();    
 			}
 		}
 
@@ -544,6 +598,7 @@ function addHomePointOverlay(coordinate, id) {
 		draw_line.onMarker = false;
 	});
 
+	toggleActive("", true);
 	document.getElementById("btn-set-home").setAttribute("disabled", true);
 	setHomeEvent = false;
 	lastHomeID++;
@@ -556,10 +611,12 @@ function addHomePointOverlay(coordinate, id) {
 $('#btn-toggle-marker').on('click', function () {
 	var toggleactive = this.getAttribute("data-toggle");
 	if (toggleactive == "on") {
+		toggleActive("btn-toggle-marker", true);
 		drawMission = false;
 		this.setAttribute("data-toggle", "off");
 		this.style.opacity = 0.7;
 	} else {
+		toggleActive("btn-toggle-marker", false);
 		drawMission = true;
 		this.setAttribute("data-toggle", "on");
 		this.style.opacity = 1;
@@ -573,10 +630,12 @@ $('#btn-toggle-marker').on('click', function () {
 $('#btn-set-home').on('click', function () {
 	var toggleactive = this.getAttribute("data-toggle");
 	if (toggleactive == "on") {
+		toggleActive("btn-set-home", true);
 		setHomeEvent = false;
 		this.setAttribute("data-toggle", "off");
 		this.style.opacity = 0.7;
 	}else{
+		toggleActive("btn-set-home", false);
 		setHomeEvent = true;
 		this.setAttribute("data-toggle", "on");
 		this.style.opacity = 1;
@@ -590,12 +649,14 @@ $('#btn-set-home').on('click', function () {
 $('#btn-toggle-draw').on('click', function () {
 	var toggleactive = this.getAttribute("data-toggle");
 	if (toggleactive == "on") {
+		toggleActive("btn-toggle-draw", true);
 		UpdateLine();
 		draw_line.active = false;
 		draw_line.new = false;
 		this.setAttribute("data-toggle", "off");
 		this.style.opacity = 0.7;
 	} else {
+		toggleActive("btn-toggle-draw", false);
 		alert("Please select Home Point first");
 		draw_line.active = true;
 		draw_line.new = true;
@@ -611,10 +672,12 @@ $('#btn-toggle-draw').on('click', function () {
 $('#btn-toggle-drag').on('click', function () {
 	var toggleactive = this.getAttribute("data-toggle");
 	if (toggleactive == "on") {
+		toggleActive("btn-toggle-drag", true);
 		toggleDragging = false;
 		this.setAttribute("data-toggle", "off");
 		this.style.opacity = 0.7;
 	} else {
+		toggleActive("btn-toggle-drag", false);
 		toggleDragging = true;
 		this.setAttribute("data-toggle", "on");
 		this.style.opacity = 1;
@@ -627,6 +690,11 @@ $('#btn-toggle-drag').on('click', function () {
 
 function selectVehicle(id) {
 	console.log("Select vehicle : " + id);
+	toggleActive("", true);
+	if(VehicleData_List.get(id).home.length == 0){
+		alert("Set home point dulu");
+		$('#btn-set-home').click();
+	}
 	currentStatusDisplay = id;
 
 	var tr = document.getElementsByTagName('tr');
@@ -637,45 +705,13 @@ function selectVehicle(id) {
 	document.getElementById("icon-vehicle-" + id).style.background = "rgba(0,0,0,.1)";
 
 	if (VehicleData_List.get(id).home.length == 0) {
-    // alert("This vehicle has no home point, please set home point");
-    document.getElementById("btn-set-home").removeAttribute("disabled");
-    document.getElementById("btn-set-home").setAttribute("data-toggle", "off");
+		// alert("This vehicle has no home point, please set home point");
+		document.getElementById("btn-set-home").removeAttribute("disabled");
+		document.getElementById("btn-set-home").setAttribute("data-toggle", "off");
 	}else{
-    document.getElementById("btn-set-home").setAttribute("disabled", true);
-  }
-
-  console.log(Mission_List);
-  document.getElementById("tbody-mission-list").innerHTML = `
-  <tr>
-	<th>#</th>
-	<th>Command</th>
-	<th width="210px">Lon</th>
-	<th width="210px">Lat</th>
-	<th>Alt</th>
-	<th>Angle</th>
-	<th>Dist</th>
-	<th width="210px">Aksi</th>
-  </tr>
-  `;
-	Mission_List.forEach(function (items, key) {
-		console.log("KEY : " + key);
-		if (key == id) {
-			var missionPoints_ = [];
-
-			// console.log("DATA BEGIN");
-			counter = 1;
-			items.forEach(function (data) {
-				if (data[0] == "HOME") {
-					addMissionRow(HomePoint_List.get(Number(data[1]))[0], HomePoint_List.get(Number(data[1]))[1], counter, 1);
-				} else {
-					addMissionRow(WayPoint_List.get(Number(data[1]))[0], WayPoint_List.get(Number(data[1]))[1], counter, 2);
-				}
-				counter++;
-			});
-
-			// console.log("DATA END")  
-		}
-	});
+	    document.getElementById("btn-set-home").setAttribute("disabled", true);
+	}
+	UpdateFlightTable(id);
 }
 
 // End of selectVehicle()
@@ -694,6 +730,23 @@ function addVehicle(id, color) {
 }
 
 // End of addVehicle()
+
+// Begin of enable/disableElement
+
+function toggleActive(element, enableAll){
+	var elementID = ["btn-toggle-marker", "btn-toggle-draw", "btn-toggle-drag", "btn-upload", "btn-save", "btn-autowp" ];
+	elementID.forEach(item => {
+		if(enableAll){
+			document.getElementById(item).removeAttribute("disabled");
+		}else{
+			if(item != element){
+				document.getElementById(item).setAttribute("disabled", true);
+			}	
+		}
+	});
+}
+
+// End of enable/disableElement
 
 map.on('click', function (evt) {
 	var coords = ol.proj.toLonLat(evt.coordinate);

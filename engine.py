@@ -25,7 +25,6 @@ vehicles = {}
 vehicle = None
 
 vehicle_dataList = []
-vehicle_AvailableOverlayList = [] # Wahana yang sudah punya overlay
 
 # Allow us to reuse sockets after the are bound.
 # http://stackoverflow.com/questions/25535975/release-python-flask-port-when-script-is-terminated
