@@ -119,7 +119,7 @@ function TransferData(){
     method: 'POST',
     url: '/api/update_data',
     contentType : 'application/json',
-    data: JSON.stringify({ data: data }),
+    data: JSON.stringify({ type:"vehicle_dataList", data: data }),
   })
   .done(function( msg ) {
     console.log("Transfer data:");
@@ -145,8 +145,9 @@ function GetData() {
 			url: '/api/get_data',
 			contentType: 'application/json',
 			data: JSON.stringify({
-				data: null
-			}),
+        request: "vehicle_dataList",
+        data:null
+      }),
 		})
 		.done(function (msg) {
 			console.log("Get Data:");

@@ -25,6 +25,9 @@ vehicles = {}
 vehicle = None
 
 vehicle_dataList = []
+waypoint_list = [] # each item = {id,lon,lat}
+homepoint_list = [] # each item = {id,lon,lat}
+mission_list = [] # each item = {id,value}
 
 # Allow us to reuse sockets after the are bound.
 # http://stackoverflow.com/questions/25535975/release-python-flask-port-when-script-is-terminated
@@ -285,31 +288,67 @@ def connect_to_drone():
 @app.route("/api/update_data", methods=['POST','PUT'])
 def update_data():
     global vehicle_dataList
+    global homepoint_list
+    global waypoint_list
+    global mission_list
     if request.method =='POST' or request.method == 'PUT':
-            try:
-                data = request.json['data']
+        try:
+            data_type = request.json['type']
+            data = request.json['data']
+            if data_type == "vehicle_dataList":
                 vehicle_dataList = []
                 for value in data:
                     vehicle_dataList.append(value)
                 print(vehicle_dataList)
-                return "success"
-            except Exception as e:
-                print(e)
-                return "failed"
+            elif data_type == "homepoint_list":
+                homepoint_list = []
+                for value in data:
+                    homepoint_list.append(value)
+                print(homepoint_list)
+            elif data_type == "waypoint_list":
+                waypoint_list = []
+                for value in data:
+                    waypoint_list.append(value)
+                print(waypoint_list)
+            elif data_type == "mission_list":
+                mission_list = []
+                for value in data:
+                    mission_list.append(value)
+                print(mission_list)
+            return "success"
+        except Exception as e:
+            print(e)
+            return "failed"
 
 # api transfer data from engine.py
 @app.route("/api/get_data", methods=['POST','PUT'])
 def get_data():
     global vehicle_dataList
+    global homepoint_list
+    global waypoint_list
+    global mission_list
     if request.method =='POST' or request.method == 'PUT':
-            try:
-                datasend = ""
+        try:
+            data_request = request.json['request']
+            if data_request == "vehicle_dataList":
                 print("vehicle_dataList:")
                 print(vehicle_dataList)
                 return jsonify(error=0, data=vehicle_dataList)
-            except Exception as e:
-                print(e)
-                return "failed"
+            elif data_request == "homepoint_list":
+                print("homepoint_list:")
+                print(homepoint_list)
+                return jsonify(error=0, data=homepoint_list)
+            elif data_request == "waypoint_list":
+                print("waypoint_list:")
+                print(waypoint_list)
+                return jsonify(error=0, data=waypoint_list)
+            elif data_request == "mission_list":
+                print("mission_list:")
+                print(mission_list)
+                return jsonify(error=0, data=mission_list)
+        except Exception as e:
+            print(e)
+            return "failed"
 
 
 # Never cache

@@ -144,7 +144,7 @@
                     <div class="nav mt-5 pt-5 flex-column nav-pills" id="v-pills-tab" role="tablist"
                          aria-orientation="vertical">
                         <a class="nav-link" href="/plan" aria-selected="true"><i class="icon-map"></i><h6 style="font-size: 8px">PLAN</h6></a>
-                        <a class="nav-link active" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab"
+                        <a class="nav-link active" id="v-pills-profile-tab" data-toggle="pill" href="/status" role="tab"
                            aria-controls="v-pills-profile" aria-selected="false"><i class="icon-plane"></i><h6 style="font-size: 8px">STATUS</h6></a>
                         <a class="nav-link" href="" aria-selected="false"><i class="icon-refresh"></i><h6 style="font-size: 8px">CALIBRATE</h6></a>
                         <a class="nav-link" href="" aria-selected="false"><i class="icon-settings2"></i><h6 style="font-size: 8px">SETTING</h6></a>
@@ -296,10 +296,14 @@
 </div>
 <!--/#app -->
 <script src="/static/scripts/js/app.js"></script>
-<script type="text/javascript" src="/static/scripts/js/statusrealtime.js"></script>
+<script type="text/javascript" src="/static/scripts/js/status_realtime.js"></script>
 <script type="text/javascript">
     $(document).ready(function(){
         GetData();
+        window.onbeforeunload = function(){
+            TransferData();
+            return 'Are you sure you want to leave?';
+        };
         // $("#btn-addvehicle").click();
     });
 </script>

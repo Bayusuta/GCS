@@ -4,10 +4,6 @@ var PointerInteraction = ol.interaction.Pointer;
 // -- Global Variable -- //
 
 var VehicleData_List = new Map();
-var VehicleOverlay_List = new Map();
-
-var lastVehicleID = 0;
-var color_List = ["blue", "green", "red", "purple", "yellow"];
 var currentStatusDisplay = 0;
 
 var HomePoint_List = new Map();
@@ -26,13 +22,13 @@ var draw_line = {
 	new: false,
 	onMarker: false
 }
+
 var Global_HomePointIndex;
 
 var drawMission = false;
 var setHomeEvent = false;
 var toggleDragging = false;
 
-var globmsg = null;
 
 // -- End of Global Variable -- //
 
@@ -218,35 +214,109 @@ function handleUpEvent() {
 // -- Transfer Data To engine.py
 
 function TransferData() {
-	var data = [];
-	VehicleData_List.forEach(function (items, key) {
-		data.push(items);
+	// vehicle_dataList 
+	var vehicle_data = [];
+	VehicleData_List.forEach(function(items, key) {
+		vehicle_data.push(items);
 	});
 
 	$.ajax({
-			method: 'POST',
-			url: '/api/update_data',
-			contentType: 'application/json',
-			data: JSON.stringify({
-				data: data
-			}),
-		})
-		.done(function (msg) {
-			console.log("Transfer data:");
-			console.table(data);
-		});
+        method: 'POST',
+        url: '/api/update_data',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            type: "vehicle_dataList",
+            data: vehicle_data
+        }),
+	}).done(function(msg) {
+		console.log("Transfer data:");
+		console.table(vehicle_data);
+	});
+
+	// HomePoint
+	var homepoint_data = [];
+	HomePoint_List.forEach(function (items, key){
+		var temp = {id:key,lon:items[0],lat:items[1]};
+		homepoint_data.push(temp);
+	});
+
+	$.ajax({
+		method: 'POST',
+		url: '/api/update_data',
+		contentType: 'application/json',
+		data: JSON.stringify({
+			type: "homepoint_list",
+			data: homepoint_data
+		}),
+	})
+	.done(function (msg) {
+		console.log("Transfer data:");
+		console.table(homepoint_data);
+	});
+
+	// Waypoint
+	var waypoint_data = [];
+	WayPoint_List.forEach(function (items, key){
+		var temp = {id:key,lon:items[0],lat:items[1]};
+		waypoint_data.push(temp);
+	});
+
+	$.ajax({
+		method: 'POST',
+		url: '/api/update_data',
+		contentType: 'application/json',
+		data: JSON.stringify({
+			type: "waypoint_list",
+			data: waypoint_data
+		}),
+	})
+	.done(function (msg) {
+		console.log("Transfer data:");
+		console.table(waypoint_data);
+	});
+
+	// Mission_List
+	var mission_list_data = [];
+	Mission_List.forEach(function (items, key){
+		var temp = {id:key,value:items};
+		mission_list_data.push(temp);
+	});
+
+	$.ajax({
+		method: 'POST',
+		url: '/api/update_data',
+		contentType: 'application/json',
+		data: JSON.stringify({
+			type: "mission_list",
+			data: mission_list_data
+		}),
+	})
+	.done(function (msg) {
+		console.log("Transfer data:");
+		console.table(mission_list_data);
+	});
 }
+
+var Page = document.getElementById("html_page");
+Page.addEventListener("keyup", function(event) {
+  if (event.keyCode === 68) {
+   event.preventDefault();
+   TransferData();
+  }
+});
 
 // -- End Transfer Data To engine.py
 
 // -- Get Data from engine.py
 
 function GetData() {
+	// Get vehicle_dataList
 	$.ajax({
 		method: 'PUT',
 		url: '/api/get_data',
 		contentType: 'application/json',
 		data: JSON.stringify({
+			request:"vehicle_dataList",
 			data: null
 		}),
 	})
@@ -258,7 +328,70 @@ function GetData() {
 			VehicleData_List.set(msg.data[i].key, msg.data[i]);
 			addVehicle(msg.data[i].key, msg.data[i].vehicleColor);
 		}
-		selectVehicle(msg.data[msg.data.length-1].key);
+
+		if(msg.data.length>0){
+			selectVehicle(msg.data[0].key);
+		}
+	});
+
+	// Get homepoint_list
+	$.ajax({
+		method: 'PUT',
+		url: '/api/get_data',
+		contentType: 'application/json',
+		data: JSON.stringify({
+			request:"homepoint_list",
+			data: null
+		}),
+	})
+	.done(function (msg) {
+		console.log("Get Data:");
+		// console.log(msg);
+		for (var i = 0; i < msg.data.length; i++) {
+			console.log(msg.data[i]);
+			HomePoint_List.set(msg.data[i].id, [msg.data[i].lon, msg.data[i].lat]);
+			addHomePointOverlay([msg.data[i].lon, msg.data[i].lat], msg.data[i].id, true);
+		}
+	});
+
+	// Get waypoint_list
+	$.ajax({
+		method: 'PUT',
+		url: '/api/get_data',
+		contentType: 'application/json',
+		data: JSON.stringify({
+			request:"waypoint_list",
+			data: null
+		}),
+	})
+	.done(function (msg) {
+		console.log("Get Data:");
+		// console.log(msg);
+		for (var i = 0; i < msg.data.length; i++) {
+			console.log(msg.data[i]);
+			WayPoint_List.set(msg.data[i].id, [msg.data[i].lon, msg.data[i].lat]);
+			addWayPointOverlay([msg.data[i].lon, msg.data[i].lat], msg.data[i].id, true);
+		}
+	});
+
+	// Get mission_list
+	$.ajax({
+		method: 'PUT',
+		url: '/api/get_data',
+		contentType: 'application/json',
+		data: JSON.stringify({
+			request:"mission_list",
+			data: null
+		}),
+	})
+	.done(function (msg) {
+		console.log("Get Data:");
+		// console.log(msg);
+		for (var i = 0; i < msg.data.length; i++) {
+			console.log(msg.data[i]);
+			Mission_List.set(msg.data[i].id, msg.data[i].value);
+		}
+		UpdateLine();
 	});
 }
 
@@ -436,7 +569,7 @@ function UpdateFlightTable(id){
 
 // -- PUSH PointLayer source -- //
 
-function addWayPointOverlay(coordinate, id) {
+function addWayPointOverlay(coordinate, id, fromGet=false) {
 	var lon = coordinate[0];
 	var lat = coordinate[1];
 
@@ -446,6 +579,7 @@ function addWayPointOverlay(coordinate, id) {
 	MarkerOverlayContent.innerHTML = '<span><b>' + lastPointID + '</b></span>';
 
 	WayPoint_List.set(lastPointID, [lon, lat]);
+	if(!fromGet) TransferData();
 
 	var MarkerOverlay = new ol.Overlay({
 		element: MarkerOverlayContent,
@@ -476,6 +610,7 @@ function addWayPointOverlay(coordinate, id) {
 				var convertedCoordinate = convertToLonLat(map.getEventCoordinate(evt)[0], map.getEventCoordinate(evt)[1]);
 				Overlay_WayPoint_List.get(Number(id)).setPosition(map.getEventCoordinate(evt));
 				WayPoint_List.set(Number(thisPointID), convertedCoordinate);
+				if(!fromGet) TransferData();
 				UpdateLine();
 				console.log("Move Point");
 				// style_Arrow = [];
@@ -514,12 +649,13 @@ function addWayPointOverlay(coordinate, id) {
 
 // -- PUSH Home Point Overlay -- //
 
-function addHomePointOverlay(coordinate, id) {
+function addHomePointOverlay(coordinate, id, fromGet=false) {
 	var lon = coordinate[0];
-  var lat = coordinate[1];
-  
-  var tempVehicleData = VehicleData_List.get(id);
-  VehicleData_List.set(id, {key:id, vehicleColor:tempVehicleData.vehicleColor, address:tempVehicleData.address, baudrate:tempVehicleData.baudrate, isConnected:tempVehicleData.isConnected, home:[lon,lat], missionList:[]});
+	var lat = coordinate[1];
+	
+	var tempVehicleData = VehicleData_List.get(id);
+	VehicleData_List.set(id, {key:id, vehicleColor:tempVehicleData.vehicleColor, address:tempVehicleData.address, baudrate:tempVehicleData.baudrate, isConnected:tempVehicleData.isConnected, home:[lon,lat], missionList:[]});
+	TransferData();
 
 	var MarkerOverlayContent = document.createElement('div');
 	MarkerOverlayContent.classList.add("marker");
@@ -533,6 +669,7 @@ function addHomePointOverlay(coordinate, id) {
 	});
 
 	HomePoint_List.set(id, [lon, lat]);
+	if(!fromGet) TransferData();
 
 	Overlay_HomePoint_List.set(id, MarkerOverlay);
 	map.addOverlay(Overlay_HomePoint_List.get(Number(id)));
@@ -568,6 +705,7 @@ function addHomePointOverlay(coordinate, id) {
 				var convertedCoordinate = convertToLonLat(map.getEventCoordinate(evt)[0], map.getEventCoordinate(evt)[1]);
 				Overlay_HomePoint_List.get(Number(id)).setPosition(map.getEventCoordinate(evt));
 				HomePoint_List.set(Number(thisPointID), convertedCoordinate);
+				if(!fromGet) TransferData();
 				UpdateLine();
         // style_Arrow = [];
         generateStyleArrow();
@@ -757,10 +895,12 @@ map.on('click', function (evt) {
 	if (setHomeEvent == true) {
 		console.log([lon, lat]);
 		addHomePointOverlay([lon, lat], currentStatusDisplay);
+		TransferData();
 	}
 
 	if (drawMission == true) {
 		console.log([lon, lat]);
 		addWayPointOverlay([lon, lat], lastPointID);
+		TransferData();
 	}
 });

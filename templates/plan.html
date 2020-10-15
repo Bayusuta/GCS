@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zxx">
+<html id="html_page" lang="zxx">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -233,8 +233,8 @@
                 <div class="indigo text-white">
                     <div class="nav mt-5 pt-5 flex-column nav-pills" id="v-pills-tab" role="tablist"
                          aria-orientation="vertical">
-                        <a class="nav-link active" href="" aria-selected="true"><i class="icon-map"></i><h6 style="font-size: 8px">PLAN</h6></a>
-                        <a class="nav-link" href="/status" aria-selected="false"><i class="icon-plane"></i><h6 style="font-size: 8px">STATUS</h6></a>
+                        <a class="nav-link active" href="/plan" onclick="TransferData()" aria-selected="true"><i class="icon-map"></i><h6 style="font-size: 8px">PLAN</h6></a>
+                        <a class="nav-link" href="/status" onclick="TransferData()" aria-selected="false"><i class="icon-plane"></i><h6 style="font-size: 8px">STATUS</h6></a>
                         <a class="nav-link" href="" aria-selected="false"><i class="icon-refresh"></i><h6 style="font-size: 8px">CALIBRATE</h6></a>
                         <a class="nav-link" href="" aria-selected="false"><i class="icon-settings2"></i><h6 style="font-size: 8px">SETTING</h6></a>
                         <a class="nav-link" href="" aria-selected="false"><i class="icon-help"></i><h6 style="font-size: 8px">HELP</h6></a>
@@ -351,7 +351,11 @@
 <script>
     $(document).ready(function(){
         GetData();
-        
+        window.onbeforeunload = function(){
+            TransferData();
+            return 'Are you sure you want to leave?';
+        };
+
         $('#datatable').on('click', '[id^=btnDelete]', function() {
             var $item = $(this).closest("tr");
 //            var ID = $.trim($item.find(".id").text());
