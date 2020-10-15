@@ -14,6 +14,8 @@ var Overlay_WayPoint_List = new Map();
 
 var Mission_List = new Map();
 
+var VehicleOverlay_List = new Map();
+
 var lastPointID = 1;
 var lastHomeID = 0;
 
@@ -24,6 +26,7 @@ var draw_line = {
 }
 
 var Global_HomePointIndex;
+var globmsg;
 
 var drawMission = false;
 var setHomeEvent = false;
@@ -323,13 +326,19 @@ function GetData() {
 	.done(function (msg) {
 		console.log("Get Data:");
 		// console.log(msg);
+		var Selected = false;
 		for (var i = 0; i < msg.data.length; i++) {
 			console.log(msg.data[i]);
 			VehicleData_List.set(msg.data[i].key, msg.data[i]);
 			addVehicle(msg.data[i].key, msg.data[i].vehicleColor);
+            if (msg.data[i].isConnected) { // Has overlay
+                addVehicleOverlay([0, 0], msg.data[i].key);
+				selectVehicle(msg.data[i].key);
+				Selected = true;
+            }
 		}
 
-		if(msg.data.length>0){
+		if(msg.data.length>0 && !Selected){
 			selectVehicle(msg.data[0].key);
 		}
 	});
@@ -885,6 +894,136 @@ function toggleActive(element, enableAll){
 }
 
 // End of enable/disableElement
+
+// Begin generate mission text
+function createMission() {
+    var text = "QGC WPL 110\n";
+    // HOME POINT
+    var lon = HomePoint_List.get(currentStatusDisplay)[0];
+    var lat = HomePoint_List.get(currentStatusDisplay)[1];
+	text += "0\t1\t0\t16\t0\t0\t0\t0\t"+lat+"\t"+lon+"\t583.989990\t1\n";
+	
+	var missionPoints_ = []
+	var MissionListSelectedVehicle = Mission_List.get(currentStatusDisplay);
+	for(var i=0; i<MissionListSelectedVehicle.length; i++){
+		data = MissionListSelectedVehicle[i];
+		if(data[0] == "HOME"){
+			// missionPoints_.push([HomePoint_List.get(Number(data[1]))[0], HomePoint_List.get(Number(data[1]))[1]]);
+		}else{
+			missionPoints_.push([WayPoint_List.get(Number(data[1]))[0], WayPoint_List.get(Number(data[1]))[1]]);
+		}
+	}
+
+    var index = 1;
+    missionPoints_.forEach(element => {
+        console.log(element[0]); // Longitude
+        console.log(element[1]); // Latitude
+        text += index + "\t0\t3\t16\t0.00000000\t0.00000000\t0.00000000\t0.00000000\t" + element[1] + "\t" + element[0] + "\t100.000000\t1\n";
+        index++;
+    });
+    return text;
+}
+
+// End generate mission text
+
+// Begin save mission
+
+$('#btn-save').on('click', function () {
+	var text = createMission();
+
+	var element = document.createElement('a');
+	var file = new Blob([text], {
+	  type: 'text/json'
+	});
+	element.href = URL.createObjectURL(file);
+	element.download = "waypoints.txt";
+  
+	element.style.display = 'none';
+	document.body.appendChild(element);
+  
+	element.click();
+  
+	document.body.removeChild(element);
+});
+
+// End save mission
+
+// Begin upload mission
+
+$('#btn-upload').on('click', function () {
+	var text = createMission();
+	$.ajax({
+        method: 'POST',
+        url: '/api/upload_mission',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            id: currentStatusDisplay,
+            mission_text: text
+        }),
+	}).done(function(msg) {
+		console.log("Upload mission:");
+		console.log(msg);
+		alert(msg);
+	});
+});
+
+// End upload mission
+
+// Begin of addVehicleOverlay
+// -- Function : Add Vehicle Overlay -- //
+
+function addVehicleOverlay(coordinate, id) {
+	var lon = coordinate[0],
+		lat = coordinate[1];
+
+	var Vehicle_Element = document.createElement('div');
+	Vehicle_Element.style.position = 'relative';
+	Vehicle_Element.style.height = '80px';
+	Vehicle_Element.style.width = '80px';
+	Vehicle_Element.innerHTML = '' +
+		'<div style="background: rgba(0, 220, 255, 1); opacity: 0.2; width: 100%; height: 100%; border-radius: 50%; position: absolute; top: 0; left: 0; box-sizing: border-box; border: 2px solid rgb(0, 100, 150);"></div>' +
+		'<div style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; -webkit-transform: rotate(45deg);" class="heading"><div style="width: 0; height: 0; border-width: 10px; border-style: solid; border-color: red transparent transparent red; position: absolute; top: 0; left: 0;"></div></div>' +
+		'<img src="static/images/solo.png" height="50" style="z-index: 100; position: absolute; top: 50%; left: 50%; margin-left: -43px; margin-top: -20px;">';
+
+	var Vehicle_Overlay = new ol.Overlay({
+		element: Vehicle_Element,
+		position: ol.proj.transform([lon, lat], 'EPSG:4326', 'EPSG:3857'),
+		positioning: 'center-center'
+	});
+
+	VehicleOverlay_List.set(id, Vehicle_Overlay);
+
+	map.addOverlay(VehicleOverlay_List.get(Number(id)));
+	map.getView().setCenter(ol.proj.transform([lon, lat], 'EPSG:4326', 'EPSG:3857'));
+	console.log("Add Vehicle Overlay With ID: " + id);
+}
+
+// -- End of Function : Add Vehicle Overlay -- //
+
+// -- Global msg -- //
+
+var done = false;
+var source = new EventSource('/api/sse/state');
+source.onmessage = function(event) {
+	// console.log(event.data);
+	var msg = JSON.parse(event.data);
+	if (!globmsg) {
+		console.log('FIRST', msg);
+		$('body').removeClass('disabled');
+		//map.getView().setCenter(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
+	}
+	globmsg = msg;
+	var CurrentOverlay = VehicleOverlay_List.get(msg.id);
+	CurrentOverlay.setPosition(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
+	$(CurrentOverlay.getElement()).find('.heading').css('-webkit-transform', 'rotate(' + ((msg.heading) + 45) + 'deg)');
+	if (msg.id == currentStatusDisplay) {
+        console.log(msg);
+		if (!done){
+			map.getView().setCenter(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
+			done = true;
+		}
+	}
+};
 
 map.on('click', function (evt) {
 	var coords = ol.proj.toLonLat(evt.coordinate);

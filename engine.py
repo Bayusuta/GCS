@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from dronekit import connect, VehicleMode, LocationGlobalRelative
+from dronekit import connect, VehicleMode, LocationGlobalRelative, Command
 from pymavlink import mavutil
 from queue import Queue
 from flask import Flask, render_template, jsonify, Response, request, redirect, url_for
@@ -346,6 +346,65 @@ def get_data():
                 print("mission_list:")
                 print(mission_list)
                 return jsonify(error=0, data=mission_list)
+        except Exception as e:
+            print(e)
+            return "failed"
+
+# upload mission
+@app.route("/api/upload_mission", methods=['POST','PUT'])
+def upload_mission():
+    global vehicles
+    def readmission(text, id):
+        cmds = vehicles.get(id).commands
+        missionlist=[]
+        data = text.split("\n")
+        i=0
+        for line in data:
+            print("line :")
+            print(line)
+            if i!=0 and len(line)>0:
+                linearray=line.split('\t')
+                ln_index=int(linearray[0])
+                ln_currentwp=int(linearray[1])
+                ln_frame=int(linearray[2])
+                ln_command=int(linearray[3])
+                ln_param1=float(linearray[4])
+                ln_param2=float(linearray[5])
+                ln_param3=float(linearray[6])
+                ln_param4=float(linearray[7])
+                ln_param5=float(linearray[8])
+                ln_param6=float(linearray[9])
+                ln_param7=float(linearray[10])
+                ln_autocontinue=int(linearray[11].strip())
+                cmd = Command( 0, 0, 0, ln_frame, ln_command, ln_currentwp, ln_autocontinue, ln_param1, ln_param2, ln_param3, ln_param4, ln_param5, ln_param6, ln_param7)
+                missionlist.append(cmd)       
+            i+=1         
+        return missionlist
+
+    if request.method =='POST' or request.method == 'PUT':
+        try:
+            vehicle_id = request.json['id']
+            mission_text = request.json['mission_text']
+            print("mission_text")
+            print(mission_text)
+            missionlist = readmission(mission_text, vehicle_id)
+            print(missionlist)
+            
+            #Clear existing mission from vehicle
+            print(' Clear mission')
+            cmds = vehicles.get(vehicle_id).commands
+            cmds.clear()
+
+            #Add new mission to vehicle
+            for command in missionlist:
+                cmds.add(command)
+
+            print(' Upload mission')
+
+            vehicles.get(vehicle_id).commands.upload()
+
+            print("Upload success")
+            return "Upload success"
         except Exception as e:
             print(e)
             return "failed"
