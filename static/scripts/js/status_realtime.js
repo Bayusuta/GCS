@@ -555,6 +555,7 @@ $('#delete-vehicle').on('click', function() {
 var last_lon = null;
 var last_lat = null;
 var source = new EventSource('/api/sse/state');
+var timer_point = 0;
 source.onmessage = function(event) {
 	// console.log(event.data);
 	var msg = JSON.parse(event.data);
@@ -568,11 +569,15 @@ source.onmessage = function(event) {
 	CurrentOverlay.setPosition(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
 	$(CurrentOverlay.getElement()).find('.heading').css('-webkit-transform', 'rotate(' + ((msg.heading) + 45) + 'deg)');
 	if (msg.id == currentStatusDisplay) {
-		console.log(msg);
+        console.log(msg);
         if(msg.lon != last_lon || msg.lat != last_lat){
-            last_lon = msg.lon;
-            last_lat = msg.lat;
-            addTrackPath([msg.lon, msg.lat]);
+            timer_point++;
+            if(timer_point%10 == 0){
+                last_lon = msg.lon;
+                last_lat = msg.lat;
+                addTrackPath([msg.lon, msg.lat]);
+                timer_point=0;    
+            }
         }
 		if (document.getElementById('toggle-centermap').checked) {
 			map.getView().setCenter(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
