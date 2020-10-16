@@ -246,7 +246,7 @@ function handleUpEvent() {
 // -- Transfer Data To engine.py
 
 function TransferData() {
-	return;
+	// return;
 	// vehicle_dataList 
 	var vehicle_data = [];
 	VehicleData_List.forEach(function(items, key) {
