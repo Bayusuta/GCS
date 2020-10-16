@@ -350,19 +350,22 @@ def get_data():
             print(e)
             return "failed"
 
-# upload mission
-@app.route("/api/upload_mission", methods=['POST','PUT'])
-def upload_mission():
+def readmission_file(aFileName, id):
+    """
+    Load a mission from a file into a list. The mission definition is in the Waypoint file
+    format (http://qgroundcontrol.org/mavlink/waypoint_protocol#waypoint_file_format).
+    This function is used by upload_mission().
+    """
+    print("\nReading mission from file: %s" % aFileName)
     global vehicles
-    def readmission(text, id):
-        cmds = vehicles.get(id).commands
-        missionlist=[]
-        data = text.split("\n")
-        i=0
-        for line in data:
-            print("line :")
-            print(line)
-            if i!=0 and len(line)>0:
+    cmds = vehicles.get(id).commands
+    missionlist=[]
+    with open(aFileName) as f:
+        for i, line in enumerate(f):
+            if i==0:
+                if not line.startswith('QGC WPL 110'):
+                    raise Exception('File is not supported WP version')
+            else:
                 linearray=line.split('\t')
                 ln_index=int(linearray[0])
                 ln_currentwp=int(linearray[1])
@@ -377,38 +380,100 @@ def upload_mission():
                 ln_param7=float(linearray[10])
                 ln_autocontinue=int(linearray[11].strip())
                 cmd = Command( 0, 0, 0, ln_frame, ln_command, ln_currentwp, ln_autocontinue, ln_param1, ln_param2, ln_param3, ln_param4, ln_param5, ln_param6, ln_param7)
-                missionlist.append(cmd)       
-            i+=1         
-        return missionlist
+                missionlist.append(cmd)
+    return missionlist
 
+def readmission_text(mission_text, id):
+    global vehicles
+    cmds = vehicles.get(id).commands
+    missionlist=[]
+    data = text.split("\n")
+    i=0
+    for line in data:
+        print("line :")
+        print(line)
+        if i!=0 and len(line)>0:
+            linearray=line.split('\t')
+            ln_index=int(linearray[0])
+            ln_currentwp=int(linearray[1])
+            ln_frame=int(linearray[2])
+            ln_command=int(linearray[3])
+            ln_param1=float(linearray[4])
+            ln_param2=float(linearray[5])
+            ln_param3=float(linearray[6])
+            ln_param4=float(linearray[7])
+            ln_param5=float(linearray[8])
+            ln_param6=float(linearray[9])
+            ln_param7=float(linearray[10])
+            ln_autocontinue=int(linearray[11].strip())
+            cmd = Command( 0, 0, 0, ln_frame, ln_command, ln_currentwp, ln_autocontinue, ln_param1, ln_param2, ln_param3, ln_param4, ln_param5, ln_param6, ln_param7)
+            missionlist.append(cmd)       
+        i+=1         
+    return missionlist
+
+def upload_mission_file(aFileName, id):
+    """
+    Upload a mission from a file. 
+    """
+    global vehicles
+    #Read mission from file
+    missionlist = readmission_file(aFileName, id)
+    
+    print("\nUpload mission from a file: %s" % aFileName)
+    #Clear existing mission from vehicle
+    print(' Clear mission')
+    cmds = vehicles.get(id).commands
+    cmds.clear()
+    #Add new mission to vehicle
+    for command in missionlist:
+        cmds.add(command)
+    print(' Upload mission')
+    vehicles.get(id).commands.upload()
+
+def upload_mission_text(mission_text, id):
+    """
+    Upload a mission from a text mission. 
+    """
+    global vehicles
+    #Read mission from file
+    missionlist = readmission_text(mission_text, id)
+    
+    print("\nUpload mission from a text:\n%s" % mission_text)
+    #Clear existing mission from vehicle
+    print(' Clear mission')
+    cmds = vehicles.get(id).commands
+    cmds.clear()
+    #Add new mission to vehicle
+    for command in missionlist:
+        cmds.add(command)
+    print(' Upload mission')
+    vehicles.get(id).commands.upload()
+
+# upload mission
+@app.route("/api/upload_mission", methods=['POST','PUT'])
+def upload_mission():
+    global vehicles
     if request.method =='POST' or request.method == 'PUT':
         try:
             vehicle_id = request.json['id']
             mission_text = request.json['mission_text']
-            print("mission_text")
-            print(mission_text)
-            missionlist = readmission(mission_text, vehicle_id)
-            print(missionlist)
-            
-            #Clear existing mission from vehicle
-            print(' Clear mission')
-            cmds = vehicles.get(vehicle_id).commands
-            cmds.clear()
-
-            #Add new mission to vehicle
-            for command in missionlist:
-                cmds.add(command)
-
-            print(' Upload mission')
-
-            vehicles.get(vehicle_id).commands.upload()
-
-            print("Upload success")
+            upload_mission_text(mission_text, vehicle_id)
             return "Upload success"
         except Exception as e:
             print(e)
             return "failed"
 
+# upload mission
+@app.route("/api/debug_test", methods=['POST','PUT'])
+def debug_test():
+    if request.method =='POST' or request.method == 'PUT':
+        try:
+            vehicle_id = request.json['id']
+            upload_mission_file('C:\Bayu\Mission_Planer_Mission.txt', vehicle_id)
+            return "Upload success"
+        except Exception as e:
+            print(e)
+            return "failed"
 
 # Never cache
 @app.after_request

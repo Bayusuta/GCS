@@ -198,7 +198,12 @@ function GetData() {
                 addVehicleOverlay([0, 0], msg.data[i].key);
                 selectVehicle(msg.data[i].key);
             }
-        }
+		}
+		if(VehicleData_List){
+			console.log("no vehicle");
+			$('#btn-addvehicle').click();
+			selectVehicle(0);
+		}
     });
 }
 

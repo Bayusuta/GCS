@@ -302,10 +302,22 @@ function TransferData() {
 
 var Page = document.getElementById("html_page");
 Page.addEventListener("keyup", function(event) {
-  if (event.keyCode === 68) {
-   event.preventDefault();
-   TransferData();
-  }
+  	if (event.keyCode === 68) {
+		event.preventDefault();
+		// TransferData();
+		$.ajax({
+			method: 'POST',
+			url: '/api/debug_test',
+			contentType: 'application/json',
+			data: JSON.stringify({
+				id: currentStatusDisplay
+			}),
+		})
+		.done(function (msg){
+			console.log("Upload mission from file:");
+			console.table(msg);
+		});
+  	}
 });
 
 // -- End Transfer Data To engine.py
