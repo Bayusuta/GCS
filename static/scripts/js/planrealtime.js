@@ -55,11 +55,30 @@ var missionvectorLineLayer = new ol.layer.Vector({
 
 // -- Arrow Layer
 
-var source_Arrow = new ol.source.Vector({});
 var style_Arrow = [];
-var arrow_VectorLayer = new ol.layer.Vector({
-	source: missionvectorLineSource,
+// var source_Arrow = new ol.source.Vector({});
+// var arrow_VectorLayer = new ol.layer.Vector({
+// 	source: missionvectorLineSource,
+// 	style: style_Arrow
+// });
+
+// -- Using point track layer
+const features_Track = [];
+features_Track.push(new ol.Feature({
+	geometry: new ol.geom.Point(convertFromLongLat(149.16460762750856,-35.36386907794211))
+}));
+
+const source_Arrow = new ol.source.Vector({});
+source_Arrow.addFeatures(features_Track);
+const arrow_VectorLayer = new ol.layer.Vector({
+	source: source_Arrow,
 	style: style_Arrow
+    // style: new ol.style.Style({
+    // 	image: new ol.style.Circle({
+    //         radius: 2,
+    //         fill: new ol.style.Fill({color: 'yellow'})
+    //     })
+    // })
 });
 
 function generateStyleArrow(){
@@ -84,7 +103,16 @@ function generateStyleArrow(){
       var start = convertFromLongLat(missionPoints_[i-1][0], missionPoints_[i-1][1]);
       var end   = convertFromLongLat(missionPoints_[i][0], missionPoints_[i][1]);
       console.log(start);
-      console.log(end);
+	  console.log(end);
+	  
+	  x1 = start[0];
+	  y1 = start[1];
+	  
+	  x2 = end[0];
+	  y2 = end[1];
+
+	  mid = [(x1 + x2)/2,(y1 + y2)/2];
+
       var dx = end[0] - start[0];
       var dy = end[1] - start[1];
       console.log(`dx :${dx}`);
@@ -93,7 +121,7 @@ function generateStyleArrow(){
       // arrows
       style_Arrow.push(
         new ol.style.Style({
-          geometry: new ol.geom.Point(end),
+          geometry: new ol.geom.Point(mid),
           image: new ol.style.Icon({
             src: 'static/images/arrow.png',
             anchor: [0.75, 0.5],
@@ -102,7 +130,8 @@ function generateStyleArrow(){
           }),
         })
       );
-    }
+	}
+	arrow_VectorLayer.setStyle(style_Arrow);
     // console.log("DATA END")
   });
 };
@@ -217,6 +246,7 @@ function handleUpEvent() {
 // -- Transfer Data To engine.py
 
 function TransferData() {
+	return;
 	// vehicle_dataList 
 	var vehicle_data = [];
 	VehicleData_List.forEach(function(items, key) {
@@ -413,6 +443,8 @@ function GetData() {
 			Mission_List.set(msg.data[i].id, msg.data[i].value);
 		}
 		UpdateLine();
+		style_Arrow = [];
+		generateStyleArrow();
 	});
 }
 
@@ -621,7 +653,7 @@ function addWayPointOverlay(coordinate, id, fromGet=false) {
 				Mission_List.get(Number(Global_HomePointIndex)).push(["POINT", thisPointID, null]);
 				UpdateLine();
 				UpdateFlightTable(currentStatusDisplay);
-				// style_Arrow = [];
+				style_Arrow = [];
 				generateStyleArrow();
 			}
 		}
@@ -634,7 +666,7 @@ function addWayPointOverlay(coordinate, id, fromGet=false) {
 				if(!fromGet) TransferData();
 				UpdateLine();
 				console.log("Move Point");
-				// style_Arrow = [];
+				style_Arrow = [];
 				generateStyleArrow();
 			}
 		}
@@ -716,8 +748,8 @@ function addHomePointOverlay(coordinate, id, fromGet=false) {
 				UpdateLine();
 				UpdateFlightTable(currentStatusDisplay);
 				// Finish drawing line
-				// style_Arrow = [];
-				generateStyleArrow();    
+				style_Arrow = [];
+				generateStyleArrow();
 			}
 		}
 
@@ -728,9 +760,9 @@ function addHomePointOverlay(coordinate, id, fromGet=false) {
 				HomePoint_List.set(Number(thisPointID), convertedCoordinate);
 				if(!fromGet) TransferData();
 				UpdateLine();
-        // style_Arrow = [];
-        generateStyleArrow();
-      }
+				style_Arrow = [];
+				generateStyleArrow();
+      		}
 		}
 
 		function end(evt) {
@@ -816,7 +848,7 @@ $('#btn-toggle-draw').on('click', function () {
 		this.style.opacity = 0.7;
 	} else {
 		toggleActive("btn-toggle-draw", false);
-		alert("Please select Home Point first");
+		// alert("Please select Home Point first");
 		draw_line.active = true;
 		draw_line.new = true;
 		this.setAttribute("data-toggle", "on");
@@ -845,14 +877,57 @@ $('#btn-toggle-drag').on('click', function () {
 
 // -- End of Enable Togle Drag -- //
 
+// -- Enable Togle Hide Overlay -- //
+
+function hideVehicleOverlay(hide){
+	var vehicleOverlays = document.getElementsByClassName("vehicleOverlay");
+	for (var i = 0; i < vehicleOverlays.length; i++) {
+		if(hide){
+			vehicleOverlays.item(i).style.display = "none";
+		}else{
+			vehicleOverlays.item(i).style.display = "block";
+		}
+	}	
+}
+
+$('#btn-toggle-hide-overlay').on('click', function () {
+	var toggleactive = this.getAttribute("data-toggle");
+	if (toggleactive == "on") {
+		// toggleActive("btn-toggle-hide-overlay", true);
+		// toggleHideOverlay = false;
+		hideVehicleOverlay(false);
+		this.setAttribute("data-toggle", "off");
+		this.style.opacity = 0.7;
+	} else {
+		// toggleActive("btn-toggle-hide-overlay", false);
+		// toggleHideOverlay = true;
+		hideVehicleOverlay(true);
+		this.setAttribute("data-toggle", "on");
+		this.style.opacity = 1;
+	}
+});
+
+// -- End of Enable Togle Hide Overlay -- //
+
 // Begin of selectVehicle()
 
+var pendingHomePoint = true;
 function selectVehicle(id) {
 	console.log("Select vehicle : " + id);
 	toggleActive("", true);
 	if(VehicleData_List.get(id).home.length == 0){
-		alert("Set home point dulu");
-		$('#btn-set-home').click();
+		if(VehicleData_List.get(id).isConnected){
+			alert("Vehicle sudah terhubung, home point adalah lokasi vehicle saat ini");
+			$('#btn-set-home').click();
+			if(globmsg){
+				addHomePointOverlay([globmsg.lon, globmsg.lat], id);
+			}else{
+				pendingHomePoint = true;
+			}
+		}else{
+			alert("Vehicle belum terhubung, set home point secara manual");
+			$('#btn-set-home').click();	
+		}
 	}
 	currentStatusDisplay = id;
 
@@ -989,6 +1064,8 @@ function addVehicleOverlay(coordinate, id) {
 		lat = coordinate[1];
 
 	var Vehicle_Element = document.createElement('div');
+	Vehicle_Element.classList.add("vehicleOverlay");
+
 	Vehicle_Element.style.position = 'relative';
 	Vehicle_Element.style.height = '80px';
 	Vehicle_Element.style.width = '80px';
@@ -1025,6 +1102,10 @@ source.onmessage = function(event) {
 		//map.getView().setCenter(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
 	}
 	globmsg = msg;
+	if(pendingHomePoint){
+		addHomePointOverlay([globmsg.lon, globmsg.lat], currentStatusDisplay);
+		pendingHomePoint = false;
+	}
 	var CurrentOverlay = VehicleOverlay_List.get(msg.id);
 	CurrentOverlay.setPosition(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
 	$(CurrentOverlay.getElement()).find('.heading').css('-webkit-transform', 'rotate(' + ((msg.heading) + 45) + 'deg)');
