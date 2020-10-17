@@ -658,6 +658,7 @@ function addWayPointOverlay(coordinate, id, fromGet=false) {
 				alert("This is not Home Point, Try Again!");
 			} else {
 				Mission_List.get(Number(Global_HomePointIndex)).push({TYPE:"POINT", ID:thisPointID, COMMAND:16, ALT:100});
+				console.log("Add Mission List with point id : " + thisPointID);
 				UpdateLine();
 				UpdateFlightTable(currentStatusDisplay);
 				style_Arrow = [];
@@ -921,7 +922,7 @@ $('#btn-toggle-hide-overlay').on('click', function () {
 
 // Begin of selectVehicle()
 
-var pendingHomePoint = true;
+var pendingHomePoint = false;
 function selectVehicle(id) {
 	console.log("Select vehicle : " + id);
 	toggleActive("", true);
@@ -929,11 +930,7 @@ function selectVehicle(id) {
 		if(VehicleData_List.get(id).isConnected){
 			alert("Vehicle sudah terhubung, home point adalah lokasi vehicle saat ini");
 			$('#btn-set-home').click();
-			if(globmsg){
-				addHomePointOverlay([globmsg.lon, globmsg.lat], id);
-			}else{
-				pendingHomePoint = true;
-			}
+			pendingHomePoint = true;
 		}else{
 			alert("Vehicle belum terhubung, set home point secara manual");
 			$('#btn-set-home').click();	
@@ -1000,31 +997,18 @@ function createMission() {
     var lat = HomePoint_List.get(currentStatusDisplay)[1];
 	text += "0\t1\t0\t16\t0\t0\t0\t0\t"+lat+"\t"+lon+"\t583.989990\t1\n";
 	
-	var missionPoints_ = []
 	var MissionListSelectedVehicle = Mission_List.get(Number(currentStatusDisplay));
+	
+	var index = 1;
 	for(var i=0; i<MissionListSelectedVehicle.length; i++){
 		data = MissionListSelectedVehicle[i];
-
-		if(data.TYPE == "HOME"){
-
-		}else{
-			missionPoints_.push([WayPoint_List.get(Number(data.ID))[0], WayPoint_List.get(Number(data.ID))[1]]);
+		if(data.TYPE == "POINT"){
+			var lon = WayPoint_List.get(Number(data.ID))[0];
+			var lat = WayPoint_List.get(Number(data.ID))[1];
+			text += index + "\t0\t3\t"+data.COMMAND+"\t0.00000000\t0.00000000\t0.00000000\t0.00000000\t" + lat + "\t" + lon + "\t"+data.ALT+"\t1\n";
+			index++;
 		}
-
-		// if(data[0] == "HOME"){
-		// 	// missionPoints_.push([HomePoint_List.get(Number(data[1]))[0], HomePoint_List.get(Number(data[1]))[1]]);
-		// }else{
-		// 	missionPoints_.push([WayPoint_List.get(Number(data[1]))[0], WayPoint_List.get(Number(data[1]))[1]]);
-		// }
 	}
-
-    var index = 1;
-    missionPoints_.forEach(element => {
-        console.log(element[0]); // Longitude
-        console.log(element[1]); // Latitude
-        text += index + "\t0\t3\t16\t0.00000000\t0.00000000\t0.00000000\t0.00000000\t" + element[1] + "\t" + element[0] + "\t100.000000\t1\n";
-        index++;
-    });
     return text;
 }
 
