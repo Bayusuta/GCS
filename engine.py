@@ -387,7 +387,7 @@ def readmission_text(mission_text, id):
     global vehicles
     cmds = vehicles.get(id).commands
     missionlist=[]
-    data = text.split("\n")
+    data = mission_text.split("\n")
     i=0
     for line in data:
         print("line :")
@@ -457,6 +457,9 @@ def upload_mission():
         try:
             vehicle_id = request.json['id']
             mission_text = request.json['mission_text']
+            
+            print("mission_text:")
+            print(mission_text)
             upload_mission_text(mission_text, vehicle_id)
             return "Upload success"
         except Exception as e:

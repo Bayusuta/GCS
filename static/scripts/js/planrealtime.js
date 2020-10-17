@@ -1039,6 +1039,7 @@ $('#btn-save').on('click', function () {
 
 $('#btn-upload').on('click', function () {
 	var text = createMission();
+	console.log(text);
 	$.ajax({
         method: 'POST',
         url: '/api/upload_mission',
