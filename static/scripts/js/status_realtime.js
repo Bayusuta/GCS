@@ -25,12 +25,12 @@ var globmsg = null;
 
 // -- TRANSFORM FUNCTION -- //
 
-function convertToLonLat(x, y) {
-	return ol.proj.transform([x, y], 'EPSG:3857', 'EPSG:4326');
+function convertToLonLat(coordinates) {
+	return ol.proj.transform(coordinates, 'EPSG:3857', 'EPSG:4326');
 }
 
-function convertFromLongLat(long, lat) {
-	return ol.proj.transform([long, lat], 'EPSG:4326', 'EPSG:3857')
+function convertFromLongLat(coordinates) {
+	return ol.proj.transform(coordinates, 'EPSG:4326', 'EPSG:3857')
 }
 
 // -- TRANSFORM FUNCTION -- //
@@ -53,7 +53,7 @@ function addTrackPath(coordinates){
     lat = coordinates[1];
     // console.log("try to draw point : ["+lon+","+lat+"]" );
     features_Track.push(new ol.Feature({
-        geometry: new ol.geom.Point(convertFromLongLat(lon,lat))
+        geometry: new ol.geom.Point(convertFromLongLat(coordinates))
     }));
     vectorSource_Track.clear();
     vectorSource_Track.addFeatures(features_Track);
