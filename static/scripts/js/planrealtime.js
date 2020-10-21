@@ -37,6 +37,9 @@ var setHomeEvent = false;
 var toggleDragging = false;
 
 
+// Permutation Global Variable;
+var permArr = [], usedChars = [];
+
 // -- End of Global Variable -- //
 
 var missionvectorLineSource = new ol.source.Vector({});
@@ -86,10 +89,10 @@ const arrow_VectorLayer = new ol.layer.Vector({
 });
 
 function generateStyleArrow(){
-  console.log("generateStyleArrow called");
-
+	style_Arrow = [];
+	console.log("generateStyleArrow called");
 	Mission_List.forEach(function (items, key) {
-		console.log("KEY : " + key);
+		// console.log("KEY : " + key);
 		var missionPoints_ = [];
 
 		items.forEach(function (data){
@@ -100,13 +103,13 @@ function generateStyleArrow(){
 			}
 		});
 
-		console.table(missionPoints_);
+		// console.table(missionPoints_);
 		
 		for(var i=1; i<missionPoints_.length; i++){
 			var start = convertFromLongLat(missionPoints_[i-1]);
 			var end   = convertFromLongLat(missionPoints_[i]);
-			console.log(start);
-			console.log(end);
+			// console.log(start);
+			// console.log(end);
 			
 			x1 = start[0];
 			y1 = start[1];
@@ -118,8 +121,8 @@ function generateStyleArrow(){
 
 			var dx = end[0] - start[0];
 			var dy = end[1] - start[1];
-			console.log(`dx :${dx}`);
-			console.log(`dy :${dy}`);
+			// console.log(`dx :${dx}`);
+			// console.log(`dy :${dy}`);
 			var rotation = Math.atan2(dy, dx);
 			// arrows
 			style_Arrow.push(
@@ -134,9 +137,9 @@ function generateStyleArrow(){
 				})
 			);
 		}
-		arrow_VectorLayer.setStyle(style_Arrow);
 		// console.log("DATA END")
   	});
+	arrow_VectorLayer.setStyle(style_Arrow);
 };
 
 // -- End Arrow Layer
@@ -265,8 +268,8 @@ function TransferData() {
             data: vehicle_data
         }),
 	}).done(function(msg) {
-		console.log("Transfer data:");
-		console.table(vehicle_data);
+		// console.log("Transfer data:");
+		// console.table(vehicle_data);
 	});
 
 	// HomePoint
@@ -286,8 +289,8 @@ function TransferData() {
 		}),
 	})
 	.done(function (msg) {
-		console.log("Transfer data:");
-		console.table(homepoint_data);
+		// console.log("Transfer data:");
+		// console.table(homepoint_data);
 	});
 
 	// Waypoint
@@ -307,8 +310,8 @@ function TransferData() {
 		}),
 	})
 	.done(function (msg) {
-		console.log("Transfer data:");
-		console.table(waypoint_data);
+		// console.log("Transfer data:");
+		// console.table(waypoint_data);
 	});
 
 	// Mission_List
@@ -328,8 +331,8 @@ function TransferData() {
 		}),
 	})
 	.done(function (msg) {
-		console.log("Transfer data:");
-		console.table(mission_list_data);
+		// console.log("Transfer data:");
+		// console.table(mission_list_data);
 	});
 }
 
@@ -658,7 +661,7 @@ function addWayPointOverlay(coordinate, id, fromGet=false) {
 				alert("This is not Home Point, Try Again!");
 			} else {
 				Mission_List.get(Number(Global_HomePointIndex)).push({TYPE:"POINT", ID:thisPointID, COMMAND:16, ALT:100});
-				console.log("Add Mission List with point id : " + thisPointID);
+				// console.log("Add Mission List with point id : " + thisPointID);
 				UpdateLine();
 				UpdateFlightTable(currentStatusDisplay);
 				style_Arrow = [];
@@ -673,7 +676,7 @@ function addWayPointOverlay(coordinate, id, fromGet=false) {
 				WayPoint_List.set(Number(thisPointID), convertedCoordinate);
 				if(!fromGet) TransferData();
 				UpdateLine();
-				console.log("Move Point");
+				// console.log("Move Point");
 				style_Arrow = [];
 				generateStyleArrow();
 				$('*[data-lon-wp-id="'+thisPointID+'"]').val(convertedCoordinate[0]);
@@ -975,7 +978,7 @@ function addVehicle(id, color) {
 // Begin of enable/disableElement
 
 function toggleActive(element, enableAll){
-	var elementID = ["btn-toggle-marker", "btn-toggle-draw", "btn-toggle-drag", "btn-upload", "btn-save", "btn-autowp", "btn-toggle-edit-table", "btn-toggle-delete-wp" ];
+	var elementID = ["btn-toggle-marker", "btn-toggle-draw", "btn-toggle-drag", "btn-upload", "btn-save", "btn-autowp", "btn-toggle-edit-table", "btn-clear-wp" ];
 	elementID.forEach(item => {
 		if(enableAll){
 			document.getElementById(item).removeAttribute("disabled");
@@ -1175,7 +1178,459 @@ function UpdateFlightMissionData(type, wp_id, row_num){
 	}
 }
 
-// End of update flight data 
+// End of update flight data
+
+// Begin of AutoWP
+
+function AutoWP(){
+	// Divide waypoint into all vehicle
+	var Vehicle_Selected_Path = new Map();
+	// Format {key:id_HomePoint, value:[] (array wp2 terdekat)}
+
+	var home_point_arr = [];
+	var isPicked = new Map();
+	var DistanceFromTo = new Map();
+
+	HomePoint_List.forEach(function(h_item, h_key){
+		home_point_arr.unshift(h_key);
+		Vehicle_Selected_Path.set(h_key, []);
+
+		var from = convertFromLongLat(h_item);
+		var jarak_terdekat = [];
+		
+		WayPoint_List.forEach(function (wp_item, wp_key){
+			isPicked.set(wp_key, false);
+			var to = convertFromLongLat(wp_item);
+			var x1 = from[0];
+			var x2 = to[0];
+
+			var y1 = from[1];
+			var y2 = to[1];
+
+			var jarak = Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2));
+			console.log("Jarak dari HOME ["+ h_key +"] ke WP ["+ wp_key +"] : " + jarak);
+		
+			// Manual priority_queue implementation
+			var inserted = false;
+			for(var i=0; i<jarak_terdekat.length; i++){
+				if(jarak_terdekat[i].distance < jarak ){
+					jarak_terdekat.splice(i, 0, {destination:wp_key, distance:jarak});
+					inserted = true;
+					break;
+				}
+			}
+			if(!inserted){
+				jarak_terdekat.push({destination:wp_key, distance:jarak});
+			}
+		});
+
+		console.log("---");
+
+		DistanceFromTo.set(h_key, jarak_terdekat);
+		console.log("Jarak terdekat dari key : " + h_key);
+		jarak_terdekat.forEach(function(item){
+			console.log(item);
+		});
+	});
+
+	// Pembagian wp-wp nya
+	var bagi = WayPoint_List.size / HomePoint_List.size;
+	var queue = [];
+	for(var i = 0; i<bagi; i++){
+		for(var j=0; j<home_point_arr.length; j++){
+			queue.unshift(home_point_arr[j]);
+		}
+	}
+
+	console.log("queue");
+	console.log(queue);
+
+	while(queue.length > 0){
+		var queue_top = queue.pop();
+		console.log("TOP : " + queue_top);
+		var now_distanceList = DistanceFromTo.get(queue_top);
+
+		var picked = now_distanceList.pop();
+		while(isPicked.get(picked.destination)){
+			picked = now_distanceList.pop();
+			if(now_distanceList.length <= 0){
+				console.log("now_distanceList.length EMPTY!");
+				break;
+			};
+		}
+
+		console.log("Picked : " + picked.destination);
+		console.log(picked);
+
+		var now_selected_path = Vehicle_Selected_Path.get(queue_top);
+		console.log("now_selected_path : ");
+		console.log(now_selected_path);
+
+		now_selected_path.push(picked);
+		console.log("Push : " + picked.destination);
+		Vehicle_Selected_Path.set(queue_top, now_selected_path);
+		console.log("Set : " + queue_top);
+		console.log("Value Set : ");
+		console.log(now_selected_path);
+
+		isPicked.set(picked.destination, true);
+		DistanceFromTo.set(queue_top, now_distanceList);
+	}
+
+	console.log(Vehicle_Selected_Path);
+
+}
+
+var graph = new Map();
+
+function AutoWP_BruteForce(){
+	var arr_wp_key = [];
+	WayPoint_List.forEach(function (wp_item, wp_key){
+		var thisDestination = wp_key;
+		arr_wp_key.push(thisDestination);
+	});
+
+	var arr_hp_key = [];
+	HomePoint_List.forEach(function (hp_item, hp_key){
+		arr_hp_key.push(hp_key);
+	});
+
+	var jarak_paling_minimum = {jarak_total:Infinity, jalur:[] }; // jalur : index => arr_hp_key, value=visitedpath
+
+	permArr = []; usedChars = [];
+	permute(arr_wp_key);
+
+	var bagi = parseInt(WayPoint_List.size / HomePoint_List.size);
+	var sisa = WayPoint_List.size % bagi;
+	console.log("Pembagian : " + bagi);
+	console.log("Sisa      : " + sisa);
+	console.log("Hasil Permutasi:");
+	console.log(permArr);
+
+	for(var x=0; x<permArr.length; x++){
+		var perm = permArr[x];
+		var pilihan_list = [];
+		
+		var temp_sisa = sisa;
+		var start = 0;
+		var end = bagi-1;
+		
+		for(var i=0; i<HomePoint_List.size; i++){
+			if(temp_sisa > 0){
+				end++;
+				temp_sisa--;
+			}
+			// console.log("start : " + start);
+			// console.log("end : " + end);
+			var pilihan = perm.slice(start, end+1);
+
+			console.log("pilihan");
+			console.log(pilihan);
+			pilihan_list.push(pilihan);
+
+			start=end+1;
+			end+=bagi;
+		}
+		// console.log("pilihan_list");
+		// console.log(pilihan_list);
+		var temp_total_jarak = 0;
+		var temp_jalur = [];
+		for(var j=0; j<pilihan_list.length; j++){
+			var jalur_terpendek = calculateShortestPath(arr_hp_key[j], pilihan_list[j]);
+			temp_jalur.push(jalur_terpendek);
+			temp_total_jarak += jalur_terpendek.totalJarak;
+		}
+
+		if(temp_total_jarak <= jarak_paling_minimum.jarak_total){
+			jarak_paling_minimum = {jarak_total: temp_total_jarak, jalur:temp_jalur};
+		}
+		// break;
+	}
+	console.log("jarak_paling_minimum");
+	console.log(jarak_paling_minimum);
+
+	for(var i=0; i<jarak_paling_minimum.jalur.length; i++){
+		var hp_key = arr_hp_key[i];
+		console.log("hp_key : "+ hp_key);
+
+		var jalurnya = jarak_paling_minimum.jalur[i].jalur;
+		console.log(jalurnya);
+		var mission = [];
+		
+		mission.push({TYPE:"HOME", ID:hp_key, COMMAND:16, ALT:100});
+		jalurnya.forEach(function(wp){
+			mission.push({TYPE:"POINT", ID:wp, COMMAND:16, ALT:100});
+		});	
+		mission.push({TYPE:"HOME", ID:hp_key, COMMAND:16, ALT:100});
+		Mission_List.set(Number(hp_key), mission);
+		console.log(Mission_List);
+	}
+	UpdateLine();
+}
+
+$('#btn-autowp').on('click', function () {
+	// AutoWP();
+	// GenerateGraph();
+	// console.log("GRAPH : ");
+	// console.log(graph);
+	AutoWP_BruteForce();
+	// findPath(1000);
+});
+
+// End of AutoWP
+
+// Graph
+
+
+function setGraph(source, destination, distance){
+    if(!graph.get(source)){
+        graph.set(source, []);
+    }
+    graph.get(source).push({dst:destination, weight:distance});
+
+    if(!graph.get(destination)){
+        graph.set(destination, []);
+    }
+    graph.get(destination).push({dst:source, weight:distance});
+}
+
+function GenerateGraph(){
+	// Set graph from home to dst
+	HomePoint_List.forEach(function(h_item, h_key){
+		var thisHome = h_key + 1000; // kita gak akan buat 1000 wp
+		var from = convertFromLongLat(h_item);
+		
+		WayPoint_List.forEach(function (wp_item, wp_key){
+			var thisDestination = wp_key;
+			var to = convertFromLongLat(wp_item);
+
+			var x1 = from[0];
+			var x2 = to[0];
+			var y1 = from[1];
+			var y2 = to[1];
+
+			var jarak = Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2));
+			console.log("setGraph("+thisHome+", "+thisDestination+", "+jarak+");");
+			setGraph(thisHome, thisDestination, jarak);
+		});
+	});
+	// Set graph for each destination
+	var arr_wp_key = [];
+	WayPoint_List.forEach(function (wp_item, wp_key){
+		var thisDestination = wp_key;
+		arr_wp_key.push(thisDestination);
+	});
+	Kombinasi(arr_wp_key, 0, 2);
+}
+
+// End of Graph
+
+// Combination
+
+var temp_kombinasi = [];
+function Kombinasi(arr, offset, k){ // k nya pasti 2
+	if(k == 0){
+		console.log("Kombinasi ditemukan");
+		// console.log(temp_kombinasi);
+		var from_wp = temp_kombinasi[0];
+		var to_wp = temp_kombinasi[1];
+
+		var from_coord = convertFromLongLat(WayPoint_List.get(from_wp));
+		var to_coord = convertFromLongLat(WayPoint_List.get(to_wp));
+
+		var x1 = from_coord[0];
+		var x2 = to_coord[0];
+		var y1 = from_coord[1];
+		var y2 = to_coord[1];
+
+		var jarak = Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2));
+		
+		console.log("setGraph("+from_wp+", "+to_wp+", "+jarak+");");
+		setGraph(from_wp, to_wp, jarak);
+		return;
+	}
+
+	for(var i=offset; i <= arr.length - k; i++ ){
+		temp_kombinasi.push(arr[i]);
+		Kombinasi(arr, i+1, k-1);
+		temp_kombinasi.pop();
+	}
+}
+
+// End of Combination
+
+// Permutation
+
+function permute(input) {
+	var i, ch;
+	for (i = 0; i < input.length; i++) {
+    	ch = input.splice(i, 1)[0];
+	    usedChars.push(ch);
+	    if (input.length == 0) {
+		    permArr.push(usedChars.slice());
+	    }
+	    permute(input);
+	    input.splice(i, 0, ch);
+	    usedChars.pop();
+	}
+	
+	return permArr;
+};
+
+var permArr2 = [];
+var usedChars2 = [];
+function permute2(input) {
+	var i, ch;
+	for (i = 0; i < input.length; i++) {
+    	ch = input.splice(i, 1)[0];
+	    usedChars2.push(ch);
+	    if (input.length == 0) {
+		    permArr2.push(usedChars2.slice());
+	    }
+	    permute2(input);
+	    input.splice(i, 0, ch);
+	    usedChars2.pop();
+	}
+	
+	return permArr2;
+};
+
+// End of permtation
+
+// Find Path
+
+function findPath(source){
+	var arr_wp_key = [];
+	WayPoint_List.forEach(function (wp_item, wp_key){
+		var thisDestination = wp_key;
+		arr_wp_key.push(thisDestination);
+	});
+
+	permArr = [];
+	usedChars = [];
+	permute(arr_wp_key);
+
+	var list_Jalur = []; // Each Data : {jalur:[], totaljarak:}
+
+	permArr.forEach(function(item){
+		// console.log(item);
+		var total_jarak = 0;
+		total_jarak += HitungJarak(convertFromLongLat(HomePoint_List.get(source-1000)), convertFromLongLat(WayPoint_List.get(item[0])));
+		total_jarak += HitungJarak(convertFromLongLat(HomePoint_List.get(source-1000)), convertFromLongLat(WayPoint_List.get(item[item.length-1])));
+
+		for(var i=1; i<item.length; i++){
+			var from = item[i-1];
+			var to = item[i];
+			total_jarak += HitungJarak(convertFromLongLat(WayPoint_List.get(from)), convertFromLongLat(WayPoint_List.get(to)));
+		}
+		// Manual priority_queue implementation
+		var inserted = false;
+		for(var i=0; i<list_Jalur.length; i++){
+			if(list_Jalur[i].totalJarak > total_jarak ){
+				list_Jalur.splice(i, 0, {jalur:item, totalJarak:total_jarak});
+				inserted = true;
+				break;
+			}
+		}
+		if(!inserted){
+			list_Jalur.push({jalur:item, totalJarak:total_jarak});
+		}
+	});
+	
+	console.log("List jalur terpendek");
+	list_Jalur.forEach(function(item){
+		console.log(item);
+	});
+
+	var mission = [];
+	mission.push({TYPE:"HOME", ID:source-1000, COMMAND:16, ALT:100});
+	list_Jalur[0].jalur.forEach(function(wp){
+		mission.push({TYPE:"POINT", ID:wp, COMMAND:16, ALT:100});
+	});	
+	mission.push({TYPE:"HOME", ID:source-1000, COMMAND:16, ALT:100});
+	Mission_List.set(Number(source-1000), mission);
+	UpdateLine();
+	style_Arrow = [];
+	generateStyleArrow();
+}
+
+// End of Find Path
+
+// Hitung Jarak
+
+function HitungJarak(from_coord, to_coord){
+	var x1 = from_coord[0];
+	var x2 = to_coord[0];
+	var y1 = from_coord[1];
+	var y2 = to_coord[1];
+
+	var jarak = Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2));
+	return jarak;
+}
+
+// End of Hitung Jarak
+
+// Hitung jarak terpendek dari src, [listpath]
+
+function calculateShortestPath(source, listpath){
+	permArr2 = [];
+	usedChars2 = [];
+	permute2(listpath);
+
+	var list_Jalur = []; // Each Data : {jalur:[], totaljarak:}
+	permArr2.forEach(function(item){
+		// console.log("Item permutasi : ");
+		// console.log(item);
+		var total_jarak = 0;
+		total_jarak += HitungJarak(convertFromLongLat(HomePoint_List.get(source)), convertFromLongLat(WayPoint_List.get(item[0])));
+		total_jarak += HitungJarak(convertFromLongLat(HomePoint_List.get(source)), convertFromLongLat(WayPoint_List.get(item[item.length-1])));
+
+		for(var i=1; i<item.length; i++){
+			var from = item[i-1];
+			var to = item[i];
+			total_jarak += HitungJarak(convertFromLongLat(WayPoint_List.get(from)), convertFromLongLat(WayPoint_List.get(to)));
+		}
+		// Manual priority_queue implementation
+		var inserted = false;
+		for(var i=0; i<list_Jalur.length; i++){
+			if(list_Jalur[i].totalJarak > total_jarak ){
+				list_Jalur.splice(i, 0, {jalur:item, totalJarak:total_jarak});
+				inserted = true;
+				break;
+			}
+		}
+		if(!inserted){
+			list_Jalur.push({jalur:item, totalJarak:total_jarak});
+		}
+	});
+	
+	// console.log("List jalur terpendek");
+	// list_Jalur.forEach(function(item){
+	// 	console.log(item);
+	// });
+	return list_Jalur[0];
+}
+
+// Clear WP
+
+
+$('#btn-clear-wp').on('click', function () {
+	missionvectorLineSource.clear();
+	var arr_wp_key = [];
+	WayPoint_List.forEach(function (wp_item, wp_key){
+		var thisDestination = wp_key;
+		arr_wp_key.push(thisDestination);
+	});
+
+	arr_wp_key.forEach(function(key){
+		console.log("remove overlay : " + key);
+		map.removeOverlay(Overlay_WayPoint_List.get(key));
+		WayPoint_List.delete(key);
+		Overlay_WayPoint_List.delete(key);
+	});
+});
+
+// End of Clear WP
 
 // -- Global msg -- //
 

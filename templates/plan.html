@@ -6,7 +6,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="icon" href="/static/images/basic/favicon.ico" type="image/x-icon">
-    <title>Bayusuta</title>
+    <title>Bayusuta tesstt</title>
     <!-- CSS -->
     <link rel="stylesheet" href="/static/scripts/css/app.css">
     <link rel="stylesheet" href="/static/scripts/css/sweetalert.css">
@@ -293,7 +293,7 @@
                             </button>
                         </div>
                         <div class="sm-col">
-                            <button class="btn btn-default" title="Delete waypoint" id="btn-toggle-delete-wp" style="opacity: 0.7; margin: 5px; width: 40px; ">
+                            <button class="btn btn-default" title="Clear Waypoint" id="btn-clear-wp" style="opacity: 0.7; margin: 5px; width: 40px; ">
                                 <i class="icon-eraser text-dark"></i>
                             </button>
                         </div>
@@ -312,7 +312,7 @@
                         <div class="col-md-12" >
                             <div class="box">
                                 <div class="box-body" style="height: 210px; overflow: auto;">
-                                    <table class="table table-bordered" >
+                                    <table class="table table-bordered" id="datatable" >
                                         <tbody id="tbody-mission-list">
                                         <tr>
                                             <th>#</th>
@@ -339,7 +339,7 @@
         <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: 100%; width: 100%;">
             <div class="slimScroll" style="overflow: hidden; height: 100%; width: 100%;">
                 <div class="sidebar-header">
-                    <h6><b>Plane</b></h6>
+                    <h6><b>Planed</b></h6>
                 </div>
                 <div class="table-responsive">
                     <table id="recent-orders" class="table table-hover mb-0 ps-container ps-theme-default">
@@ -368,10 +368,10 @@
         GetData();
         window.onbeforeunload = function(){
             TransferData();
-            return 'Are you sure you want to leave?';
+            // return 'Are you sure you want to leave?';
         };
 
-        $('#datatable').on('click', '[id^=btnDelete]', function() {
+        $('#datatable').on('click', '[id^=row-btn-delete]', function() {
             var $item = $(this).closest("tr");
 //            var ID = $.trim($item.find(".id").text());
 

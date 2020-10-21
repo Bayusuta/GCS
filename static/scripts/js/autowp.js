@@ -113,7 +113,7 @@ function findPath(source){
     while(end.length > 0){
         process.stdout.write(end.pop() + " -> ");
     }
-    
+
     console.log(source);
 }
 
@@ -121,7 +121,7 @@ function findPath(source){
 // setGraph(5,6,4);
 
 /*
-Graph Visualitation : https://jamboard.google.com/d/1pyqZULYsrWX4cmByj1fG9jktdDnnNkGbQP2TOyQ4qz4/edit?usp=sharing
+Graph Visualization : https://jamboard.google.com/d/1pyqZULYsrWX4cmByj1fG9jktdDnnNkGbQP2TOyQ4qz4/edit?usp=sharing
 */
 
 // Graph problem A

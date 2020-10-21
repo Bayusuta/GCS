@@ -199,7 +199,7 @@ function GetData() {
                 selectVehicle(msg.data[i].key);
             }
 		}
-		if(VehicleData_List){
+		if(VehicleData_List.size == 0){
 			console.log("no vehicle");
 			$('#btn-addvehicle').click();
 			selectVehicle(0);
