@@ -290,24 +290,22 @@ function TransferData() {
 var Page = document.getElementById("html_page");
 Page.addEventListener("keyup", function(event) {
   	if (event.keyCode === 68) {
-		event.preventDefault();
-		// TransferData();
-		$.ajax({
-			method: 'POST',
-			url: '/api/debug_test',
-			contentType: 'application/json',
-			data: JSON.stringify({
-				id: currentStatusDisplay
-			}),
-		})
-		.done(function (msg){
-			console.log("Upload mission from file:");
-			console.table(msg);
-		});
+		// var arr = [[1,2,3],2,3];
+
+		// console.log(arr[0].join() == [1,2,3].join());
+		// console.log(arr[0]);
+
+		var test_arr = [1,2,2];
+		permute3(test_arr);
+		console.log(permArr3);
   	}
 });
 
 // -- End Transfer Data To engine.py
+
+// inArray():
+
+// end of inArray():
 
 // -- Get Data from engine.py
 
@@ -595,7 +593,7 @@ function addMissionRow(row_num, wp_id, command, coords, alt, angle, dist_next_wp
             <td><input type="text" id="textbox-lat-` + row_num + `" oninput="UpdateFlightMissionData('lat', `+wp_id+`, `+row_num+`)" data-lat-wp-id="`+wp_id+`" class="editable_flightdata_element" style="border:none; width:100%;" disabled="true" value="` + lat + `"/></td>
             <td><input type="text" id="textbox-alt-` + row_num + `" oninput="UpdateFlightMissionData('alt', `+wp_id+`, `+row_num+`)" data-wp-id="`+wp_id+`" class="editable_flightdata_element" style="border:none; width:100%;" disabled="true" value="` + alt + `"/></td>
             <td>
-                <button type="button" title="Insert row below" class="btn btn-default btn-sm editable_flightdata_element" id="row-btn-plus" data-toggle="modal" data-target="#exampleModal">
+                <button type="button" title="Insert row below" data-wp-id="`+wp_id+`" data-row-num="`+row_num+`" class="btn btn-default btn-sm editable_flightdata_element" id="row-btn-plus" data-toggle="modal" data-target="#exampleModal">
                     <i class="icon-plus"></i>
                 </button>
                 <button type="button" title="Remove mission" data-wp-id="`+wp_id+`" class="btn btn-danger btn-sm editable_flightdata_element" id="row-btn-delete" data-toggle="modal" data-target="#exampleModal">
@@ -630,8 +628,10 @@ function UpdateFlightTable(id){
 			var data = currentMission[i];
 			if (data.TYPE == "HOME"){
 				// addMissionRow(i+1, data.ID, data.COMMAND, HomePoint_List.get(Number(data.ID)), data.ALT, 0, 0);
-			} else {
+			} else if (data.TYPE == "POINT") {
 				addMissionRow(counter, data.ID, data.COMMAND, WayPoint_List.get(Number(data.ID)), data.ALT, 0, 0);
+			}else{
+				addMissionRow(counter, data.ID, data.COMMAND, data.COORDS, data.ALT, 0, 0);
 			}
 			counter++;
 		}	
@@ -1314,7 +1314,7 @@ function AutoWP_B(){
 	permute(arr_wp_key);
 
 	var bagi = parseInt(WayPoint_List.size / HomePoint_List.size);
-	var sisa = WayPoint_List.size % bagi;
+	var sisa = WayPoint_List.size % HomePoint_List.size;
 	console.log("Pembagian : " + bagi);
 	console.log("Sisa      : " + sisa);
 	console.log("Hasil Permutasi:");
@@ -1325,40 +1325,111 @@ function AutoWP_B(){
 		var pilihan_list = [];
 		
 		var temp_sisa = sisa;
+
 		var start = 0;
 		var end = bagi-1;
-		
+
+		var x_bagian = [];
 		for(var i=0; i<HomePoint_List.size; i++){
 			if(temp_sisa > 0){
-				end++;
+				x_bagian.push(bagi+1);
 				temp_sisa--;
+			}else{
+				x_bagian.push(bagi);
 			}
-			// console.log("start : " + start);
-			// console.log("end : " + end);
+		}
+		console.log("X bagian : ");
+		console.log(x_bagian);
+		
+		// for(var i=0; i<HomePoint_List.size; i++){
+		// 	if(temp_sisa > 0){
+		// 		end++;
+		// 		temp_sisa--;
+		// 	}
+			
+		// 	// console.log("start : " + start);
+		// 	// console.log("end : " + end);
+		// 	var pilihan = perm.slice(start, end+1);
+
+		// 	// console.log("pilihan");
+		// 	// console.log(pilihan);
+		// 	pilihan_list.push(pilihan);
+
+		// 	start=end+1;
+		// 	end+=bagi;
+		// }
+		
+		permArr3 = []; usedChars3 = [];
+		permute3(x_bagian); // permArr3 = permutasi kemungkinan pemilihan
+		// example : 1,2 || 2,1
+		
+		console.log("Permutasinya: ");
+		console.log(permArr3);
+
+		for(var i=0; i<permArr3.length; i++){
+			pilihan_list = [];
+			var thisData = permArr3[i]; // [1,2]
+			console.log("permutasi sekarang : " + thisData.join());
+			var start = 0;
+			var end = thisData[0]-1;
+
+			console.log("start : " + start + " end : " + end);
+
 			var pilihan = perm.slice(start, end+1);
 
 			console.log("pilihan");
 			console.log(pilihan);
 			pilihan_list.push(pilihan);
+			for(var j=1; j<thisData.length; j++){
+				start = end + 1;
+				end += thisData[j];
+				console.log("start : " + start + " end : " + end);
+				pilihan = perm.slice(start, end+1);
+				pilihan_list.push(pilihan);
+				console.log("pilihan");
+				console.log(pilihan);
+			}
 
-			start=end+1;
-			end+=bagi;
-		}
-		// console.log("pilihan_list");
-		// console.log(pilihan_list);
-		var temp_total_jarak = 0;
-		var temp_jalur = [];
-		for(var j=0; j<pilihan_list.length; j++){
-			var jalur_terpendek = calculateShortestPath(arr_hp_key[j], pilihan_list[j]);
-			temp_jalur.push(jalur_terpendek);
-			temp_total_jarak += jalur_terpendek.totalJarak;
-		}
+			console.log("Pilihan List:");
+			console.log(pilihan_list);
 
-		if(temp_total_jarak <= jarak_paling_minimum.jarak_total){
-			jarak_paling_minimum = {jarak_total: temp_total_jarak, jalur:temp_jalur};
+			var temp_total_jarak = 0;
+			var temp_jalur = [];
+			for(var j=0; j<pilihan_list.length; j++){
+				var jalur_terpendek = calculateShortestPath(arr_hp_key[j], pilihan_list[j]);
+				temp_jalur.push(jalur_terpendek);
+				temp_total_jarak += jalur_terpendek.totalJarak;
+			}
+	
+			if(temp_total_jarak <= jarak_paling_minimum.jarak_total){
+				jarak_paling_minimum = {jarak_total: temp_total_jarak, jalur:temp_jalur};
+			}
+			// break;
 		}
 		// break;
+
+		// break;
+
+		// for(var i=0; i<HomePoint_List.size; i++){			
+		// 	// console.log("start : " + start);
+		// 	// console.log("end : " + end);
+		// 	var pilihan = perm.slice(start, end+1);
+
+		// 	// console.log("pilihan");
+		// 	// console.log(pilihan);
+		// 	pilihan_list.push(pilihan);
+
+		// 	start=end+1;
+		// 	end+=bagi;
+		// }
+
+		// console.log("pilihan_list");
+		// console.log(pilihan_list);
+		
+
+		// break;
 	}
+
 	console.log("jarak_paling_minimum");
 	console.log(jarak_paling_minimum);
 
@@ -1510,6 +1581,30 @@ function permute2(input) {
 	return permArr2;
 };
 
+var permArr3 = [];
+var permArr3Join = [];
+var usedChars3 = [];
+function permute3(input) {
+	var i, ch;
+	for (i = 0; i < input.length; i++) {
+    	ch = input.splice(i, 1)[0];
+	    usedChars3.push(ch);
+	    if (input.length == 0) {
+			var to_push = usedChars3.slice();
+			
+			if(!permArr3Join.includes(to_push.join())){
+				permArr3Join.push(to_push.join());
+				permArr3.push(to_push);
+			}			
+	    }
+	    permute3(input);
+	    input.splice(i, 0, ch);
+	    usedChars3.pop();
+	}
+	
+	return permArr3;
+};
+
 // End of permtation
 
 // Find Path
@@ -1645,9 +1740,12 @@ $('#btn-clear-wp').on('click', function () {
 	});
 	Mission_List.clear();
 	generateStyleArrow();
+	lastPointID = 1;
 });
 
 // End of Clear WP
+
+// Delete wp
 
 $('#datatable').on('click', '[id^=row-btn-delete]', function() {
 	var $item = $(this).closest("tr");
@@ -1675,48 +1773,29 @@ $('#datatable').on('click', '[id^=row-btn-delete]', function() {
 	generateStyleArrow();
 	// TransferData();
 	selectVehicle(currentStatusDisplay);
-	// swal(
-	// 	{
-	// 		title: "Ingin menghapus command?",
-	// 		text: "Command akan dihapus",
-	// 		type: "warning",
-	// 		showCancelButton: true,
-	// 		confirmButtonColor: "#26C6DA",
-	// 		confirmButtonText: "Ya, hapus!",
-	// 		cancelButtonText: "Tidak, batalkan!",
-	// 		closeOnConfirm: false,
-	// 		closeOnCancel: false
-	// 	},function(isConfirm){
-	// 		if (isConfirm) {
-	// 			var thisMission = Mission_List.get(Number(currentStatusDisplay));
-	// 			for(var i=0; i<thisMission.length; i++){
-	// 				var data = thisMission[i];
-
-	// 				if(data.TYPE == "POINT" && data.ID == wp_id){
-	// 					// remove from mission list
-	// 					console.log(data);
-	// 					thisMission.splice(i, 1);						
-	// 					break;
-	// 				}
-	// 			}
-
-	// 			Mission_List.set(Number(currentStatusDisplay), thisMission);
-	// 			WayPoint_List.delete(Number(wp_id));
-	// 			var thisPointOverlay = Overlay_WayPoint_List.get(Number(wp_id));
-	// 			map.removeOverlay(thisPointOverlay);
-	// 			Overlay_WayPoint_List.delete(Number(wp_id));
-
-	// 			UpdateLine();
-	// 			generateStyleArrow();
-	// 			// TransferData();
-	// 			selectVehicle(currentStatusDisplay);
-	// 			swal("Berhasil", "Command berhasil dihapus", "success");
-	// 		} else {
-	// 			swal("Dibatalkan", "Command tidak jadi dihapus", "error");
-	// 		}
-	// 	}
-	// )
 });
+
+// End of delete wp
+
+// Add row
+
+$('#datatable').on('click', '[id^=row-btn-plus]', function() {
+	var $item = $(this).closest("tr");
+	// console.log($item);
+	var row_num = this.getAttribute("data-row-num");
+
+	var dataClone = Mission_List.get(currentStatusDisplay)[row_num];
+	var newData = {TYPE:"POINT", ID:lastPointID, COMMAND:16, ALT:10};
+	addWayPointOverlay(WayPoint_List.get(dataClone.ID), lastPointID);
+	Mission_List.get(currentStatusDisplay).splice(row_num, 0, newData);
+	
+	console.log("Mission_List");
+	console.log(Mission_List);
+
+	UpdateFlightTable(currentStatusDisplay);
+});
+
+// End of add row
 
 // -- Global msg -- //
 
