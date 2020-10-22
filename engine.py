@@ -21,6 +21,10 @@ import dronekit_sitl as sim
 sitl                = sim.start_default()
 connection_string   = sitl.connection_string()
 
+sitl2                = sim.start_default()
+connection_string2   = sitl2.connection_string()
+
+
 vehicles = {}
 vehicle = None
 
@@ -95,6 +99,7 @@ def arm_and_takeoff(aTargetAltitude, id):
 
 app = Flask(__name__)
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 @app.route("/")
 def index():

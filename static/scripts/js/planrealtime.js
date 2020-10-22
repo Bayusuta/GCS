@@ -75,6 +75,11 @@ features_Track.push(new ol.Feature({
 	geometry: new ol.geom.Point(convertFromLongLat([149.16460762750856,-35.36386907794211]))
 }));
 
+features_Track.push(new ol.Feature({
+	geometry: new ol.geom.Point(convertFromLongLat([112.79862761540215, -7.276434779150961]))
+}));
+
+
 const source_Arrow = new ol.source.Vector({});
 source_Arrow.addFeatures(features_Track);
 const arrow_VectorLayer = new ol.layer.Vector({
@@ -87,60 +92,6 @@ const arrow_VectorLayer = new ol.layer.Vector({
     //     })
     // })
 });
-
-function generateStyleArrow(){
-	style_Arrow = [];
-	console.log("generateStyleArrow called");
-	Mission_List.forEach(function (items, key) {
-		// console.log("KEY : " + key);
-		var missionPoints_ = [];
-
-		items.forEach(function (data){
-			if (data.TYPE == "HOME") {
-				missionPoints_.push([HomePoint_List.get(Number(data.ID))[0], HomePoint_List.get(Number(data.ID))[1]]);
-			} else {
-				missionPoints_.push([WayPoint_List.get(Number(data.ID))[0], WayPoint_List.get(Number(data.ID))[1]]);
-			}
-		});
-
-		// console.table(missionPoints_);
-		
-		for(var i=1; i<missionPoints_.length; i++){
-			var start = convertFromLongLat(missionPoints_[i-1]);
-			var end   = convertFromLongLat(missionPoints_[i]);
-			// console.log(start);
-			// console.log(end);
-			
-			x1 = start[0];
-			y1 = start[1];
-			
-			x2 = end[0];
-			y2 = end[1];
-
-			mid = [(x1 + x2)/2,(y1 + y2)/2];
-
-			var dx = end[0] - start[0];
-			var dy = end[1] - start[1];
-			// console.log(`dx :${dx}`);
-			// console.log(`dy :${dy}`);
-			var rotation = Math.atan2(dy, dx);
-			// arrows
-			style_Arrow.push(
-				new ol.style.Style({
-				geometry: new ol.geom.Point(mid),
-				image: new ol.style.Icon({
-					src: 'static/images/arrow.png',
-					anchor: [0.75, 0.5],
-					rotateWithView: true,
-					rotation: -rotation,
-				}),
-				})
-			);
-		}
-		// console.log("DATA END")
-  	});
-	arrow_VectorLayer.setStyle(style_Arrow);
-};
 
 // -- End Arrow Layer
 
@@ -181,29 +132,29 @@ var Drag = (function (PointerInteraction) {
 }(PointerInteraction));
 
 function handleDownEvent(evt) {
-	var map = evt.map;
+	// var map = evt.map;
 
-	var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
-		return feature;
-	});
+	// var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+	// 	return feature;
+	// });
 
-	if (feature) {
-		this.coordinate_ = evt.coordinate;
-		this.feature_ = feature;
-	}
+	// if (feature) {
+	// 	this.coordinate_ = evt.coordinate;
+	// 	this.feature_ = feature;
+	// }
 
-	return !!feature;
+	// return !!feature;
 }
 
 function handleDragEvent(evt) {
-	var deltaX = evt.coordinate[0] - this.coordinate_[0];
-	var deltaY = evt.coordinate[1] - this.coordinate_[1];
+	// var deltaX = evt.coordinate[0] - this.coordinate_[0];
+	// var deltaY = evt.coordinate[1] - this.coordinate_[1];
 
-	var geometry = this.feature_.getGeometry();
-	geometry.translate(deltaX, deltaY);
+	// var geometry = this.feature_.getGeometry();
+	// geometry.translate(deltaX, deltaY);
 
-	this.coordinate_[0] = evt.coordinate[0];
-	this.coordinate_[1] = evt.coordinate[1];
+	// this.coordinate_[0] = evt.coordinate[0];
+	// this.coordinate_[1] = evt.coordinate[1];
 }
 
 function handleMoveEvent(evt) {
@@ -216,19 +167,19 @@ function handleMoveEvent(evt) {
 		document.getElementById('pointer-coordinate').innerHTML = "<b>Longitude</b>: " + lon + " <b>Latitude</b>: " + lat;
 
 		var map = evt.map;
-		var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
-			return feature;
-		});
-		var element = evt.map.getTargetElement();
-		if (feature) {
-			if (element.style.cursor != this.cursor_) {
-				this.previousCursor_ = element.style.cursor;
-				element.style.cursor = this.cursor_;
-			}
-		} else if (this.previousCursor_ !== undefined) {
-			element.style.cursor = this.previousCursor_;
-			this.previousCursor_ = undefined;
-		}
+		// var feature = map.forEachFeatureAtPixel(evt.pixel, function (feature) {
+		// 	return feature;
+		// });
+		// var element = evt.map.getTargetElement();
+		// if (feature) {
+		// 	if (element.style.cursor != this.cursor_) {
+		// 		this.previousCursor_ = element.style.cursor;
+		// 		element.style.cursor = this.cursor_;
+		// 	}
+		// } else if (this.previousCursor_ !== undefined) {
+		// 	element.style.cursor = this.previousCursor_;
+		// 	this.previousCursor_ = undefined;
+		// }
 
 		// Draw Line
 
@@ -241,9 +192,9 @@ function handleMoveEvent(evt) {
 }
 
 function handleUpEvent() {
-	this.coordinate_ = null;
-	this.feature_ = null;
-	return false;
+	// this.coordinate_ = null;
+	// this.feature_ = null;
+	// return false;
 }
 
 // -- END OF Map Mouse Event -- //
@@ -451,6 +402,8 @@ function GetData() {
 				selectVehicle(currentStatusDisplay);
 			}
 		}
+		// console.log("Mission_List :::::::::: ");
+		// console.log(Mission_List);
 		UpdateLine();
 		style_Arrow = [];
 		generateStyleArrow();
@@ -482,11 +435,72 @@ var map = new ol.Map({
 
 // -- END OF THE MAP -- //
 
+// generate style arrow //
+
+function generateStyleArrow(){
+	style_Arrow = [];
+	console.log("generateStyleArrow called");
+	Mission_List.forEach(function (items, key) {
+		// console.log("KEY : " + key);
+		var missionPoints_ = [];
+
+		items.forEach(function (data){
+			if (data.TYPE == "HOME") {
+				missionPoints_.push([HomePoint_List.get(Number(data.ID))[0], HomePoint_List.get(Number(data.ID))[1]]);
+			} else {
+				missionPoints_.push([WayPoint_List.get(Number(data.ID))[0], WayPoint_List.get(Number(data.ID))[1]]);
+			}
+		});
+
+		// console.table(missionPoints_);
+		
+		for(var i=1; i<missionPoints_.length; i++){
+			var start = convertFromLongLat(missionPoints_[i-1]);
+			var end   = convertFromLongLat(missionPoints_[i]);
+			// console.log(start);
+			// console.log(end);
+			
+			x1 = start[0];
+			y1 = start[1];
+			
+			x2 = end[0];
+			y2 = end[1];
+
+			mid = [(x1 + x2)/2,(y1 + y2)/2];
+
+			var dx = end[0] - start[0];
+			var dy = end[1] - start[1];
+			// console.log(`dx :${dx}`);
+			// console.log(`dy :${dy}`);
+			var rotation = Math.atan2(dy, dx);
+
+			// arrows
+			style_Arrow.push(
+				new ol.style.Style({
+				geometry: new ol.geom.Point(mid),
+				image: new ol.style.Icon({
+						src: 'static/images/arrow.png',
+						anchor: [0.75, 0.5],
+						rotateWithView: true,
+						rotation: -rotation,
+					}),
+				})
+			);
+		}
+		// console.log("DATA END")
+  	});
+	arrow_VectorLayer.setStyle(style_Arrow);
+	// map.removeLayer(arrow_VectorLayer);
+	// map.addLayer(arrow_VectorLayer);
+};
+
+// end of generate style arrow //
+
 // -- UPDATE DRAW LINE FUNCTION -- //
 
 function UpdateLine() {
+	
 	missionvectorLineSource.clear();
-
 	Mission_List.forEach(function (items, key) {
 		// console.log("KEY : " + key);
 		var missionPoints_ = [];
@@ -580,13 +594,11 @@ function addMissionRow(row_num, wp_id, command, coords, alt, angle, dist_next_wp
             <td><input type="text" id="textbox-lon-` + row_num + `" oninput="UpdateFlightMissionData('lon', `+wp_id+`, `+row_num+`)" data-lon-wp-id="`+wp_id+`" class="editable_flightdata_element" style="border:none; width:100%;" disabled="true" value="` + lon + `"/></td>
             <td><input type="text" id="textbox-lat-` + row_num + `" oninput="UpdateFlightMissionData('lat', `+wp_id+`, `+row_num+`)" data-lat-wp-id="`+wp_id+`" class="editable_flightdata_element" style="border:none; width:100%;" disabled="true" value="` + lat + `"/></td>
             <td><input type="text" id="textbox-alt-` + row_num + `" oninput="UpdateFlightMissionData('alt', `+wp_id+`, `+row_num+`)" data-wp-id="`+wp_id+`" class="editable_flightdata_element" style="border:none; width:100%;" disabled="true" value="` + alt + `"/></td>
-            <td>`+angle+`</td>
-            <td>`+dist_next_wp+`</td>
             <td>
                 <button type="button" title="Insert row below" class="btn btn-default btn-sm editable_flightdata_element" id="row-btn-plus" data-toggle="modal" data-target="#exampleModal">
                     <i class="icon-plus"></i>
                 </button>
-                <button type="button" title="Remove mission" class="btn btn-danger btn-sm editable_flightdata_element" id="row-btn-delete" data-toggle="modal" data-target="#exampleModal">
+                <button type="button" title="Remove mission" data-wp-id="`+wp_id+`" class="btn btn-danger btn-sm editable_flightdata_element" id="row-btn-delete" data-toggle="modal" data-target="#exampleModal">
                     <i class="icon-trash"></i>
                 </button>
             </td>
@@ -607,8 +619,6 @@ function UpdateFlightTable(id){
 	  <th width="210px">Lon</th>
 	  <th width="210px">Lat</th>
 	  <th>Alt</th>
-	  <th>Angle</th>
-	  <th>Dist</th>
 	  <th width="210px">Aksi</th>
 	</tr>
 	`;
@@ -660,7 +670,7 @@ function addWayPointOverlay(coordinate, id, fromGet=false) {
 			if (draw_line.new) {
 				alert("This is not Home Point, Try Again!");
 			} else {
-				Mission_List.get(Number(Global_HomePointIndex)).push({TYPE:"POINT", ID:thisPointID, COMMAND:16, ALT:100});
+				Mission_List.get(Number(Global_HomePointIndex)).push({TYPE:"POINT", ID:thisPointID, COMMAND:16, ALT:10});
 				// console.log("Add Mission List with point id : " + thisPointID);
 				UpdateLine();
 				UpdateFlightTable(currentStatusDisplay);
@@ -751,10 +761,10 @@ function addHomePointOverlay(coordinate, id, fromGet=false) {
 				Global_HomePointIndex = thisPointID;
 				console.log(thisPointID);
 				Mission_List.set(Number(thisPointID), []);
-				Mission_List.get(Number(thisPointID)).push({TYPE:"HOME", ID:thisPointID, COMMAND:16, ALT:100});
+				Mission_List.get(Number(thisPointID)).push({TYPE:"HOME", ID:thisPointID, COMMAND:16, ALT:10});
 				draw_line.new = false;
 			} else {
-				Mission_List.get(Number(thisPointID)).push({TYPE:"HOME", ID:thisPointID, COMMAND:16, ALT:100});
+				Mission_List.get(Number(thisPointID)).push({TYPE:"HOME", ID:thisPointID, COMMAND:16, ALT:10});
 				draw_line.active = false;
 		        draw_line.new = false;
 				$('#btn-toggle-draw').click();
@@ -965,7 +975,7 @@ function selectVehicle(id) {
 function addVehicle(id, color) {
 	var tr = document.getElementsByTagName('tr');
 	$("#table-vehiclelist").append(
-		`<tr id="icon-vehicle-` + id + `" onclick="selectVehicle(` + id + `)">
+		`<tr id="icon-vehicle-` + id + `" onclick="selectVehicle(` + id + `)" style="height: 40px;">
       <td>
           <div style="border: none; background: none; width: 100%; margin-left:auto; margin-right:auto;"><center><i class="icon-plane text-` + color + `"></i></center></div>
       </td>
@@ -1012,6 +1022,9 @@ function createMission() {
 			index++;
 		}
 	}
+    lon = HomePoint_List.get(currentStatusDisplay)[0];
+    lat = HomePoint_List.get(currentStatusDisplay)[1];
+	text += index + "\t0\t3\t20\t0.00000000\t0.00000000\t0.00000000\t0.00000000\t" + lat + "\t" + lon + "\t10\t1\n";
     return text;
 }
 
@@ -1283,7 +1296,7 @@ function AutoWP(){
 
 var graph = new Map();
 
-function AutoWP_BruteForce(){
+function AutoWP_B(){
 	var arr_wp_key = [];
 	WayPoint_List.forEach(function (wp_item, wp_key){
 		var thisDestination = wp_key;
@@ -1357,15 +1370,16 @@ function AutoWP_BruteForce(){
 		console.log(jalurnya);
 		var mission = [];
 		
-		mission.push({TYPE:"HOME", ID:hp_key, COMMAND:16, ALT:100});
+		mission.push({TYPE:"HOME", ID:hp_key, COMMAND:16, ALT:10});
 		jalurnya.forEach(function(wp){
-			mission.push({TYPE:"POINT", ID:wp, COMMAND:16, ALT:100});
+			mission.push({TYPE:"POINT", ID:wp, COMMAND:16, ALT:10});
 		});	
-		mission.push({TYPE:"HOME", ID:hp_key, COMMAND:16, ALT:100});
+		mission.push({TYPE:"HOME", ID:hp_key, COMMAND:16, ALT:10});
 		Mission_List.set(Number(hp_key), mission);
 		console.log(Mission_List);
 	}
 	UpdateLine();
+	generateStyleArrow();
 }
 
 $('#btn-autowp').on('click', function () {
@@ -1373,7 +1387,8 @@ $('#btn-autowp').on('click', function () {
 	// GenerateGraph();
 	// console.log("GRAPH : ");
 	// console.log(graph);
-	AutoWP_BruteForce();
+	AutoWP_B();
+	selectVehicle(currentStatusDisplay);
 	// findPath(1000);
 });
 
@@ -1543,11 +1558,11 @@ function findPath(source){
 	});
 
 	var mission = [];
-	mission.push({TYPE:"HOME", ID:source-1000, COMMAND:16, ALT:100});
+	mission.push({TYPE:"HOME", ID:source-1000, COMMAND:16, ALT:10});
 	list_Jalur[0].jalur.forEach(function(wp){
-		mission.push({TYPE:"POINT", ID:wp, COMMAND:16, ALT:100});
+		mission.push({TYPE:"POINT", ID:wp, COMMAND:16, ALT:10});
 	});	
-	mission.push({TYPE:"HOME", ID:source-1000, COMMAND:16, ALT:100});
+	mission.push({TYPE:"HOME", ID:source-1000, COMMAND:16, ALT:10});
 	Mission_List.set(Number(source-1000), mission);
 	UpdateLine();
 	style_Arrow = [];
@@ -1628,9 +1643,80 @@ $('#btn-clear-wp').on('click', function () {
 		WayPoint_List.delete(key);
 		Overlay_WayPoint_List.delete(key);
 	});
+	Mission_List.clear();
+	generateStyleArrow();
 });
 
 // End of Clear WP
+
+$('#datatable').on('click', '[id^=row-btn-delete]', function() {
+	var $item = $(this).closest("tr");
+	// console.log($item);
+	var wp_id = this.getAttribute("data-wp-id");
+	var thisMission = Mission_List.get(Number(currentStatusDisplay));
+	for(var i=0; i<thisMission.length; i++){
+		var data = thisMission[i];
+
+		if(data.TYPE == "POINT" && data.ID == wp_id){
+			// remove from mission list
+			console.log(data);
+			thisMission.splice(i, 1);						
+			break;
+		}
+	}
+
+	Mission_List.set(Number(currentStatusDisplay), thisMission);
+	WayPoint_List.delete(Number(wp_id));
+	var thisPointOverlay = Overlay_WayPoint_List.get(Number(wp_id));
+	map.removeOverlay(thisPointOverlay);
+	Overlay_WayPoint_List.delete(Number(wp_id));
+
+	UpdateLine();
+	generateStyleArrow();
+	// TransferData();
+	selectVehicle(currentStatusDisplay);
+	// swal(
+	// 	{
+	// 		title: "Ingin menghapus command?",
+	// 		text: "Command akan dihapus",
+	// 		type: "warning",
+	// 		showCancelButton: true,
+	// 		confirmButtonColor: "#26C6DA",
+	// 		confirmButtonText: "Ya, hapus!",
+	// 		cancelButtonText: "Tidak, batalkan!",
+	// 		closeOnConfirm: false,
+	// 		closeOnCancel: false
+	// 	},function(isConfirm){
+	// 		if (isConfirm) {
+	// 			var thisMission = Mission_List.get(Number(currentStatusDisplay));
+	// 			for(var i=0; i<thisMission.length; i++){
+	// 				var data = thisMission[i];
+
+	// 				if(data.TYPE == "POINT" && data.ID == wp_id){
+	// 					// remove from mission list
+	// 					console.log(data);
+	// 					thisMission.splice(i, 1);						
+	// 					break;
+	// 				}
+	// 			}
+
+	// 			Mission_List.set(Number(currentStatusDisplay), thisMission);
+	// 			WayPoint_List.delete(Number(wp_id));
+	// 			var thisPointOverlay = Overlay_WayPoint_List.get(Number(wp_id));
+	// 			map.removeOverlay(thisPointOverlay);
+	// 			Overlay_WayPoint_List.delete(Number(wp_id));
+
+	// 			UpdateLine();
+	// 			generateStyleArrow();
+	// 			// TransferData();
+	// 			selectVehicle(currentStatusDisplay);
+	// 			swal("Berhasil", "Command berhasil dihapus", "success");
+	// 		} else {
+	// 			swal("Dibatalkan", "Command tidak jadi dihapus", "error");
+	// 		}
+	// 	}
+	// )
+});
 
 // -- Global msg -- //
 

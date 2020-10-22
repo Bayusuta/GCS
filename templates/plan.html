@@ -6,7 +6,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="icon" href="/static/images/basic/favicon.ico" type="image/x-icon">
-    <title>Bayusuta tesstt</title>
+    <title>Bayusuta</title>
     <!-- CSS -->
     <link rel="stylesheet" href="/static/scripts/css/app.css">
     <link rel="stylesheet" href="/static/scripts/css/sweetalert.css">
@@ -338,8 +338,8 @@
     <aside class="control-sidebar fixed white" style="right: 0; width: 70px; height: 100%;">
         <div class="slimScrollDiv" style="position: relative; overflow: hidden; width: auto; height: 100%; width: 100%;">
             <div class="slimScroll" style="overflow: hidden; height: 100%; width: 100%;">
-                <div class="sidebar-header">
-                    <h6><b>Planed</b></h6>
+                <div class="sidebar-header" style="padding-left: 8px; padding-top: 10px;">
+                    <h6><b>Vehicles</b></h6>
                 </div>
                 <div class="table-responsive">
                     <table id="recent-orders" class="table table-hover mb-0 ps-container ps-theme-default">
@@ -370,31 +370,7 @@
             TransferData();
             // return 'Are you sure you want to leave?';
         };
-
-        $('#datatable').on('click', '[id^=row-btn-delete]', function() {
-            var $item = $(this).closest("tr");
-//            var ID = $.trim($item.find(".id").text());
-
-            swal({
-                    title: "Ingin menghapus command?",
-                    text: "Command akan dihapus",
-                    type: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#26C6DA",
-                    confirmButtonText: "Ya, hapus!",
-                    cancelButtonText: "Tidak, batalkan!",
-                    closeOnConfirm: false,
-                    closeOnCancel: false
-                },
-                function(isConfirm){
-                    if (isConfirm) {
-                        swal("Berhasil", "Command berhasil dihapus", "success");
-                    } else {
-                        swal("Dibatalkan", "Command tidak jadi dihapus", "error");
-                    }
-                });
-        });
-    } );
+    });
 </script>
 
 <script>(function($,d){$.each(readyQ,function(i,f){$(f)});$.each(bindReadyQ,function(i,f){$(d).bind("ready",f)})})(jQuery,document)</script>

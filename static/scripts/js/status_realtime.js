@@ -575,15 +575,6 @@ source.onmessage = function(event) {
 	$(CurrentOverlay.getElement()).find('.heading').css('-webkit-transform', 'rotate(' + ((msg.heading) + 45) + 'deg)');
 	if (msg.id == currentStatusDisplay) {
         console.log(msg);
-        if(msg.lon != last_lon || msg.lat != last_lat){
-            timer_point++;
-            if(timer_point%10 == 0){
-                last_lon = msg.lon;
-                last_lat = msg.lat;
-                addTrackPath([msg.lon, msg.lat]);
-                timer_point=0;    
-            }
-        }
 		if (document.getElementById('toggle-centermap').checked) {
 			map.getView().setCenter(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
 		}
@@ -591,6 +582,15 @@ source.onmessage = function(event) {
 		$('#header-vspeed').html('<strong id="header-alt" style="color: #000;">' + msg.vspeed.toFixed(3) + '</strong>');
 		$('#header-gspeed').html('<strong id="header-alt" style="color: #000;">' + msg.gspeed.toFixed(3) + '</strong>');
 		$('#header-yaw').html('<strong id="header-alt" style="color: #000;">' + msg.heading + '</strong>');
+	}
+	if(msg.lon != last_lon || msg.lat != last_lat){
+		timer_point++;
+		if(timer_point%10 == 0){
+			last_lon = msg.lon;
+			last_lat = msg.lat;
+			addTrackPath([msg.lon, msg.lat]);
+			timer_point=0;    
+		}
 	}
 	// else{
 	//   $('#header-alt').html('<strong id="header-alt" style="color: #000;">NAN m</strong>');
