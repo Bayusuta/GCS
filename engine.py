@@ -20,10 +20,13 @@ from datetime import datetime
 import dronekit_sitl as sim
 sitl                = sim.start_default()
 connection_string   = sitl.connection_string()
+sitl_args = ['-I0', '--model', 'quad', '--home=-7.27762833375229,112.79753757123672,0,180']
+sitl.launch(sitl_args, await_ready=True, restart=True)
 
 sitl2                = sim.start_default()
 connection_string2   = sitl2.connection_string()
-
+sitl_args2 = ['-I1', '--model', 'quad', '--home=-7.277645690419675,112.79749693820645,0,180']
+sitl2.launch(sitl_args2, await_ready=True, restart=True)
 
 vehicles = {}
 vehicle = None
@@ -467,6 +470,26 @@ def upload_mission():
             print(mission_text)
             upload_mission_text(mission_text, vehicle_id)
             return "Upload success"
+        except Exception as e:
+            print(e)
+            return "failed"
+
+# upload mission
+@app.route("/api/import_mission", methods=['POST','PUT'])
+def import_mission():
+    if request.method =='POST' or request.method == 'PUT':
+        try:
+            file_path = request.json['file_path']
+            wp_list = []
+            with open(file_path) as f:
+                for i, line in enumerate(f):
+                    if i>1:
+                        linearray=line.split('\t')
+                        lat=float(linearray[8])
+                        lon=float(linearray[9])
+                        wp_list.append([lon,lat])
+            wp_list.pop()
+            return jsonify(wp=wp_list)
         except Exception as e:
             print(e)
             return "failed"

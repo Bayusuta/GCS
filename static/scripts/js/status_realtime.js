@@ -233,7 +233,7 @@ var map = new ol.Map({
 	renderer: 'canvas', // Force the renderer to be used
 	layers: [
 		new ol.layer.Tile({
-			source: new ol.source.BingMaps({
+			source: new ol.source.BingMaps({	
 				key: 'AnGHr16zmRWug0WA8mJKrMg5g6W4GejzGPBdP-wQ4Gqqw-yHNqsHmYPYh1VUOR1q',
 				imagerySet: 'AerialWithLabels',
 				// imagerySet: 'Road',
@@ -243,7 +243,7 @@ var map = new ol.Map({
 	],
 	view: new ol.View({
 		center: ol.proj.transform([112.79758155388635, -7.2772675487336045], 'EPSG:4326', 'EPSG:3857'),
-		zoom: 18
+		zoom: 19
 	})
 });
 

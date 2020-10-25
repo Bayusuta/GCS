@@ -1,6 +1,6 @@
 // enable/disable console.log
-// console.log = function() {}
-// console.table = function() {}
+console.log = function() {}
+console.table = function() {}
 
 var transform = ol.proj.getTransform('EPSG:3857', 'EPSG:4326');
 var PointerInteraction = ol.interaction.Pointer;
@@ -426,8 +426,8 @@ var map = new ol.Map({
 	renderer: 'canvas', // Force the renderer to be used
 	layers: [raster, missionvectorLineLayer, arrow_VectorLayer],
 	view: new ol.View({
-		center: ol.proj.transform([112.79758155388635, -7.2772675487336045], 'EPSG:4326', 'EPSG:3857'),
-		zoom: 18
+		center: ol.proj.transform([112.79750131436222, -7.277617644674081], 'EPSG:4326', 'EPSG:3857'),
+		zoom: 19
 	})
 });
 
@@ -1008,7 +1008,7 @@ function createMission() {
     // HOME POINT
     var lon = HomePoint_List.get(currentStatusDisplay)[0];
     var lat = HomePoint_List.get(currentStatusDisplay)[1];
-	text += "0\t1\t0\t16\t0\t0\t0\t0\t"+lat+"\t"+lon+"\t583.989990\t1\n";
+	text += "0\t1\t0\t16\t0\t0\t0\t0\t"+lat+"\t"+lon+"\t10\t1\n";
 	
 	var MissionListSelectedVehicle = Mission_List.get(Number(currentStatusDisplay));
 	
@@ -1883,6 +1883,36 @@ $('#datatable').on('click', '[id^=row-btn-plus]', function() {
 
 // End of add row
 
+// Import Mission
+
+$('#btn-import').on('click', function () {
+	document.getElementById('attachment').click();
+});
+
+function fileSelected(input){
+	if(input.files[0].name == "") return;
+	filename = "C:/Bayu/" + input.files[0].name;
+	console.log(filename);
+	// Get wp_list
+	$.ajax({
+		method: 'PUT',
+		url: '/api/import_mission',
+		contentType: 'application/json',
+		data: JSON.stringify({
+			file_path:filename,
+		}),
+	})
+	.done(function (msg) {
+		msg.wp.forEach(function(item){
+			console.log(item);
+			addWayPointOverlay(item, lastPointID);
+		});
+	});
+	document.getElementById('attachment').value ="";
+}
+
+// End of Import Mission
+
 // -- Global msg -- //
 
 var done = false;
@@ -1897,8 +1927,10 @@ source.onmessage = function(event) {
 	}
 	globmsg = msg;
 	if(pendingHomePoint){
-		addHomePointOverlay([globmsg.lon, globmsg.lat], currentStatusDisplay);
-		pendingHomePoint = false;
+		if(msg.id == currentStatusDisplay){
+			addHomePointOverlay([globmsg.lon, globmsg.lat], currentStatusDisplay);
+			pendingHomePoint = false;	
+		}
 	}
 	var CurrentOverlay = VehicleOverlay_List.get(msg.id);
 	CurrentOverlay.setPosition(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
