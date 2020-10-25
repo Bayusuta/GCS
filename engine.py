@@ -235,7 +235,7 @@ def api_connect():
             nvehicle = None
             # connection_string = str(addr) + ":" + str(baud)
             try:
-                nvehicle = connect(str(addr), wait_ready=True, baud=int(baudrate))
+                nvehicle = connect(str(addr), wait_ready=True, heartbeat_timeout=90, baud=int(baudrate))
                 nvehicle.id = id
                 vehicles[id] = nvehicle
                 # vehicles.append(nvehicle)
