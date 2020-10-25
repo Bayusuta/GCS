@@ -43,7 +43,7 @@ const vectorLayer_Track = new ol.layer.Vector({
     style: new ol.style.Style({
     image: new ol.style.Circle({
             radius: 2,
-            fill: new ol.style.Fill({color: 'yellow'})
+            fill: new ol.style.Fill({color: 'red'})
         })
     })
 });
@@ -375,7 +375,7 @@ function addVehicleOverlay(coordinate, id) {
 	Vehicle_Element.style.width = '80px';
 	Vehicle_Element.innerHTML = '' +
 		'<div style="background: rgba(0, 220, 255, 1); opacity: 0.2; width: 100%; height: 100%; border-radius: 50%; position: absolute; top: 0; left: 0; box-sizing: border-box; border: 2px solid rgb(0, 100, 150);"></div>' +
-		'<div style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; -webkit-transform: rotate(45deg);" class="heading"><div style="width: 0; height: 0; border-width: 10px; border-style: solid; border-color: red transparent transparent red; position: absolute; top: 0; left: 0;"></div></div>' +
+		'<div style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; -webkit-transform: rotate(45deg);" class="heading"><div style="width: 0; height: 0; border-width: 10px; border-style: solid; border-color: '+VehicleData_List.get(id).vehicleColor+' transparent transparent '+VehicleData_List.get(id).vehicleColor+'; position: absolute; top: 0; left: 0;"></div></div>' +
 		'<img src="static/images/solo.png" height="50" style="z-index: 100; position: absolute; top: 50%; left: 50%; margin-left: -43px; margin-top: -20px;">';
 
 	var Vehicle_Overlay = new ol.Overlay({
@@ -557,6 +557,8 @@ $('#delete-vehicle').on('click', function() {
 
 // -- Global msg -- //
 
+var PointTracker_Data = new Map();
+
 var last_lon = null;
 var last_lat = null;
 var source = new EventSource('/api/sse/state');
@@ -573,6 +575,10 @@ source.onmessage = function(event) {
 	var CurrentOverlay = VehicleOverlay_List.get(msg.id);
 	CurrentOverlay.setPosition(ol.proj.transform([msg.lon, msg.lat], 'EPSG:4326', 'EPSG:3857'));
 	$(CurrentOverlay.getElement()).find('.heading').css('-webkit-transform', 'rotate(' + ((msg.heading) + 45) + 'deg)');
+	
+	if(!PointTracker_Data.get(msg.id)){
+		PointTracker_Data.set(msg.id, {last_lon:0, last_lat:0, timer_point:1});
+	}
 	if (msg.id == currentStatusDisplay) {
         console.log(msg);
 		if (document.getElementById('toggle-centermap').checked) {
@@ -583,13 +589,12 @@ source.onmessage = function(event) {
 		$('#header-gspeed').html('<strong id="header-alt" style="color: #000;">' + msg.gspeed.toFixed(3) + '</strong>');
 		$('#header-yaw').html('<strong id="header-alt" style="color: #000;">' + msg.heading + '</strong>');
 	}
-	if(msg.lon != last_lon || msg.lat != last_lat){
-		timer_point++;
-		if(timer_point%10 == 0){
-			last_lon = msg.lon;
-			last_lat = msg.lat;
+	var currentTrackerData = PointTracker_Data.get(msg.id);
+	if(msg.lon != currentTrackerData.last_lon || msg.lat != currentTrackerData.last_lat){
+		PointTracker_Data.set(msg.id,{last_lon:currentTrackerData.last_lon, last_lat:currentTrackerData.last_lat, timer_point:currentTrackerData.timer_point+1} );
+		if(currentTrackerData.timer_point % 25 == 0){
+			PointTracker_Data.set(msg.id, {last_lon:msg.lon, last_lat:msg.lat, timer_point:0});
 			addTrackPath([msg.lon, msg.lat]);
-			timer_point=0;    
 		}
 	}
 	// else{
