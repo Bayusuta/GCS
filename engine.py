@@ -233,22 +233,20 @@ def api_connect():
             id = int(request.json['id'])
             print('connecting to drone...')
             nvehicle = None
-            # connection_string = str(addr) + ":" + str(baud) 
-            c=0
-            while not nvehicle and c<2:
-                try:
-                    nvehicle = connect(str(addr), wait_ready=True, baud=int(baudrate))
-                    nvehicle.id = id
-                    vehicles[id] = nvehicle
-                    # vehicles.append(nvehicle)
-                    print(vehicles.get(id).airspeed)
-                    vehicles.get(id).parameters['ARMING_CHECK'] = 0
-                    vehicles.get(id).flush()
-                    print("Vehicle Connected")
-                except Exception as e:
-                    print('waiting for connection... (%s)' % str(e))
-                    c+=1
-                    time.sleep(2)
+            # connection_string = str(addr) + ":" + str(baud)
+            try:
+                nvehicle = connect(str(addr), wait_ready=True, baud=int(baudrate))
+                nvehicle.id = id
+                vehicles[id] = nvehicle
+                # vehicles.append(nvehicle)
+                print(vehicles.get(id).airspeed)
+                vehicles.get(id).parameters['ARMING_CHECK'] = 0
+                vehicles.get(id).flush()
+                print("Vehicle Connected")
+            except Exception as e:
+                nvehicle.close()
+                print('waiting for connection... (%s)' % str(e))
+
 #             return "oks"
             if not nvehicle:
                 return jsonify(error=1,msg="Failed to Connect to Vehicle")
