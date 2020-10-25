@@ -670,7 +670,7 @@ function addWayPointOverlay(coordinate, id, fromGet=false) {
 			if (draw_line.new) {
 				alert("This is not Home Point, Try Again!");
 			} else {
-				Mission_List.get(Number(Global_HomePointIndex)).push({TYPE:"POINT", ID:thisPointID, COMMAND:16, ALT:10});
+				Mission_List.get(Number(Global_HomePointIndex)).push({TYPE:"POINT", ID:thisPointID, COMMAND:16, ALT:2});
 				// console.log("Add Mission List with point id : " + thisPointID);
 				UpdateLine();
 				UpdateFlightTable(currentStatusDisplay);
@@ -761,10 +761,10 @@ function addHomePointOverlay(coordinate, id, fromGet=false) {
 				Global_HomePointIndex = thisPointID;
 				console.log(thisPointID);
 				Mission_List.set(Number(thisPointID), []);
-				Mission_List.get(Number(thisPointID)).push({TYPE:"HOME", ID:thisPointID, COMMAND:16, ALT:10});
+				Mission_List.get(Number(thisPointID)).push({TYPE:"HOME", ID:thisPointID, COMMAND:16, ALT:2});
 				draw_line.new = false;
 			} else {
-				Mission_List.get(Number(thisPointID)).push({TYPE:"HOME", ID:thisPointID, COMMAND:16, ALT:10});
+				Mission_List.get(Number(thisPointID)).push({TYPE:"HOME", ID:thisPointID, COMMAND:16, ALT:2});
 				draw_line.active = false;
 		        draw_line.new = false;
 				$('#btn-toggle-draw').click();
@@ -1441,11 +1441,11 @@ function AutoWP_B2(){
 		console.log(jalurnya);
 		var mission = [];
 		
-		mission.push({TYPE:"HOME", ID:hp_key, COMMAND:16, ALT:10});
+		mission.push({TYPE:"HOME", ID:hp_key, COMMAND:16, ALT:2});
 		jalurnya.forEach(function(wp){
-			mission.push({TYPE:"POINT", ID:wp, COMMAND:16, ALT:10});
+			mission.push({TYPE:"POINT", ID:wp, COMMAND:16, ALT:2});
 		});	
-		mission.push({TYPE:"HOME", ID:hp_key, COMMAND:16, ALT:10});
+		mission.push({TYPE:"HOME", ID:hp_key, COMMAND:16, ALT:2});
 		Mission_List.set(Number(hp_key), mission);
 		console.log(Mission_List);
 	}
@@ -1527,11 +1527,11 @@ function AutoWP_B(){
 		console.log(jalurnya);
 		var mission = [];
 		
-		mission.push({TYPE:"HOME", ID:hp_key, COMMAND:16, ALT:10});
+		mission.push({TYPE:"HOME", ID:hp_key, COMMAND:16, ALT:2});
 		jalurnya.forEach(function(wp){
-			mission.push({TYPE:"POINT", ID:wp, COMMAND:16, ALT:10});
+			mission.push({TYPE:"POINT", ID:wp, COMMAND:16, ALT:2});
 		});	
-		mission.push({TYPE:"HOME", ID:hp_key, COMMAND:16, ALT:10});
+		mission.push({TYPE:"HOME", ID:hp_key, COMMAND:16, ALT:2});
 		Mission_List.set(Number(hp_key), mission);
 		console.log(Mission_List);
 	}
@@ -1739,11 +1739,11 @@ function findPath(source){
 	});
 
 	var mission = [];
-	mission.push({TYPE:"HOME", ID:source-1000, COMMAND:16, ALT:10});
+	mission.push({TYPE:"HOME", ID:source-1000, COMMAND:16, ALT:2});
 	list_Jalur[0].jalur.forEach(function(wp){
-		mission.push({TYPE:"POINT", ID:wp, COMMAND:16, ALT:10});
+		mission.push({TYPE:"POINT", ID:wp, COMMAND:16, ALT:2});
 	});	
-	mission.push({TYPE:"HOME", ID:source-1000, COMMAND:16, ALT:10});
+	mission.push({TYPE:"HOME", ID:source-1000, COMMAND:16, ALT:2});
 	Mission_List.set(Number(source-1000), mission);
 	UpdateLine();
 	style_Arrow = [];
@@ -1871,7 +1871,7 @@ $('#datatable').on('click', '[id^=row-btn-plus]', function() {
 	var row_num = this.getAttribute("data-row-num");
 
 	var dataClone = Mission_List.get(currentStatusDisplay)[row_num];
-	var newData = {TYPE:"POINT", ID:lastPointID, COMMAND:16, ALT:10};
+	var newData = {TYPE:"POINT", ID:lastPointID, COMMAND:16, ALT:2};
 	addWayPointOverlay(WayPoint_List.get(dataClone.ID), lastPointID);
 	Mission_List.get(currentStatusDisplay).splice(row_num, 0, newData);
 	
