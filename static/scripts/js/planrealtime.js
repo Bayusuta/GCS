@@ -1008,7 +1008,7 @@ function createMission() {
     // HOME POINT
     var lon = HomePoint_List.get(currentStatusDisplay)[0];
     var lat = HomePoint_List.get(currentStatusDisplay)[1];
-	text += "0\t1\t0\t16\t0\t0\t0\t0\t"+lat+"\t"+lon+"\t10\t1\n";
+	text += "0\t1\t0\t16\t0\t0\t0\t0\t"+lat+"\t"+lon+"\t2\t1\n";
 	
 	var MissionListSelectedVehicle = Mission_List.get(Number(currentStatusDisplay));
 	
