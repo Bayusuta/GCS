@@ -13,7 +13,7 @@ pip install dronekit
 ```console
 pip install dronekit-sitl
 ```
-3. Flask
+3. Flask (documentation : flask.palletsprojects.com/en/1.1.x)
 ```console
 pip install Flask
 ```
