@@ -18,23 +18,30 @@ from flask import Flask, Response
 from datetime import datetime
 
 import dronekit_sitl as sim
+
+'''
+dronekit_sitl adalah library yang akan kita gunakan untuk melakukan simulasi tanpa memerlukan wahana
+di bawah ini sudah kami siapkan dua simulasi (sitl, sitl2)
+'''
 sitl                = sim.start_default()
 connection_string   = sitl.connection_string()
-sitl_args = ['-I0', '--model', 'quad', '--home=-7.27762833375229,112.79753757123672,0,180']
+sitl_args = ['-I0', '--model', 'quad', '--home=-7.27762833375229,112.79753757123672,0,180'] #setting koordinat sitl (latitude, longitude)
 sitl.launch(sitl_args, await_ready=True, restart=True)
 
 sitl2                = sim.start_default()
 connection_string2   = sitl2.connection_string()
-sitl_args2 = ['-I1', '--model', 'quad', '--home=-7.277645690419675,112.79749693820645,0,180']
+sitl_args2 = ['-I1', '--model', 'quad', '--home=-7.277645690419675,112.79749693820645,0,180'] #setting koordinat sitl (latitude, longitude)
 sitl2.launch(sitl_args2, await_ready=True, restart=True)
 
-vehicles = {}
-vehicle = None
+'''
+berikut ini merupakan global variabel
+'''
+vehicles = {} # list vehicles
 
-vehicle_dataList = []
-waypoint_list = [] # each item = {id,lon,lat}
-homepoint_list = [] # each item = {id,lon,lat}
-mission_list = [] # each item = {id,value}
+vehicle_dataList = [] # each item = (id:{key, vehicleColor, address, baudrate, isConnected, home, missionList})
+waypoint_list = [] # each item = (id:{lon,lat})
+homepoint_list = [] # each item = (id:{lon,lat})
+mission_list = [] # each item = (id:{value})
 
 # Allow us to reuse sockets after the are bound.
 # http://stackoverflow.com/questions/25535975/release-python-flask-port-when-script-is-terminated
@@ -44,6 +51,9 @@ def my_socket_bind(self, *args, **kwargs):
     return socket.socket._bind(self, *args, **kwargs)
 socket.socket.bind = my_socket_bind
 
+'''
+berikut ini merupakan block code untuk memberikan informasi terbarukan tentang vehicle yang telah terkoneksi
+'''
 def sse_encode(obj, id=None):
     return "data: %s\n\n" % json.dumps(obj)
 
@@ -64,6 +74,10 @@ def state_msg(id):
         "lon": vehicles.get(id).location.global_relative_frame.lon
     }
 
+
+'''
+berikut ini merupakan fungsi untuk melakukan arming sekaligus takeoff secara otomatis
+'''
 def arm_and_takeoff(aTargetAltitude, id):
     """
     Arms vehicle and fly to aTargetAltitude.
@@ -99,7 +113,9 @@ def arm_and_takeoff(aTargetAltitude, id):
             break
         time.sleep(1)
 
-
+'''
+Konfigurasi Flask
+'''
 app = Flask(__name__)
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 app.config['TEMPLATES_AUTO_RELOAD'] = True
@@ -116,22 +132,12 @@ def status():
 def plan():
     return render_template('plan.html', branding=False)
 
-@app.route("/plan2")
-def plan2():
-    return render_template('plan2.html', branding=False)
-
-@app.route("/marker-overlay")
-def marker_overlay():
-    return render_template('markeroverlay.html', branding=False)
-
-@app.route("/manualmission")
-def manualmission():
-    return render_template('Layout.html', branding=False)
-
-
-listeners_location = []
 # listeners_location
+listeners_location = []
 
+'''
+Melakukan threading untuk men-generate informasi terbarukan vehicle
+'''
 from threading import Thread
 import time
 def tcount():
@@ -148,6 +154,11 @@ t = Thread(target=tcount)
 t.daemon = True
 t.start()
 
+
+'''
+API dalam melakukan update informasi terbarukan vehicle
+'''
+
 @app.route("/api/sse/state")
 def api_sse_location():
     def gen():
@@ -163,34 +174,26 @@ def api_sse_location():
 
     return Response(gen(), mimetype="text/event-stream")
 
-# @app.route("/api/location", methods=['GET', 'POST', 'PUT'])
-# def api_location():
-#     if request.method == 'POST' or request.method == 'PUT':
-#         try:
-#             data = request.get_json()
-#             (lat, lon) = (float(data['lat']), float(data['lon']))
-#             goto(lat, lon)
-#             return jsonify(ok=True)
-#         except Exception as e:
-#             print(e)
-#             return jsonify(ok=False)
-#     else:
-#         return jsonify(**location_msg())
 
-
+'''
+API dalam melakukan arming secara otomatis
+'''
 @app.route("/api/arm", methods=['POST', 'PUT'])
 def api_location():
     if request.method == 'POST' or request.method == 'PUT':
         try:
             id = int(request.json['id'])
             arm_and_takeoff(int(request.json['alt']), id)
-            # vehicle.armed = True
-            # vehicle.flush()
+            vehicles.get(id).armed = True
+            vehicles.get(id).flush()
             return jsonify(ok=True)
         except Exception as e:
             print(e)
             return jsonify(ok=False)
 
+'''
+API untuk mengubah mode vehicle
+'''
 @app.route("/api/mode", methods=['POST', 'PUT'])
 def api_mode():
     if request.method == 'POST' or request.method == 'PUT':
@@ -203,6 +206,9 @@ def api_mode():
             print(e)
             return jsonify(ok=False)
 
+'''
+API untuk menggerakan vehicle ke titik yang diinginkan
+'''
 @app.route("/api/goto", methods=['POST', 'PUT'])
 def api_goto():
     if request.method == 'POST' or request.method == 'PUT':
@@ -217,13 +223,16 @@ def api_goto():
                 vehicles.get(id).simple_goto(waypoint)
                 time.sleep(30)
 
-            # vehicle.mode = VehicleMode(request.json['mode'].upper())
-            vehicle.flush()
+            vehicle.get(id).mode = VehicleMode(request.json['mode'].upper())
+            vehicles.get(id).flush()
             return "ok"
         except Exception as e:
             print(e)
             return "failed"
 
+'''
+API dalam melakukan koneksi ke vehicle
+'''
 @app.route("/api/connect", methods=['POST','PUT'])
 def api_connect():
     if request.method =='POST' or request.method == 'PUT':
@@ -233,9 +242,12 @@ def api_connect():
             id = int(request.json['id'])
             print('connecting to drone...')
             nvehicle = None
-            # connection_string = str(addr) + ":" + str(baud)
             try:
-                nvehicle = connect(str(addr), wait_ready=True, heartbeat_timeout=90, baud=int(baudrate))
+                '''
+                timeout = lama waktu menunggu vehicle terkoneksi
+                heartbeat_timeout = waktu yang dibutuhkan untuk terkoneksi kembali jika lost connection
+                '''
+                nvehicle = connect(str(addr), wait_ready=True, timeout=120, heartbeat_timeout=90, baud=int(baudrate))
                 nvehicle.id = id
                 vehicles[id] = nvehicle
                 # vehicles.append(nvehicle)
@@ -246,8 +258,6 @@ def api_connect():
             except Exception as e:
                 nvehicle.close()
                 print('waiting for connection... (%s)' % str(e))
-
-#             return "oks"
             if not nvehicle:
                 return jsonify(error=1,msg="Failed to Connect to Vehicle")
             else:
@@ -258,6 +268,9 @@ def api_connect():
             print(e)
             return jsonify(error=1,msg="Failed to Connect to Vehicle")
 
+'''
+API dalam memutuskan koneksi vehicle
+'''
 @app.route("/api/disconnect", methods=['POST','PUT'])
 def api_disconnect():
     if request.method =='POST' or request.method == 'PUT':
@@ -271,25 +284,10 @@ def api_disconnect():
                 print(e)
                 return "failed"
 
-def connect_to_drone():
-    global vehicles#
-    nvehicle = None#
-    print('connecting to drone...')
-    while not nvehicle:
-        try:
-            nvehicle = connect(connection_string, wait_ready=True, rate=10)
-            nvehicle.id = 1 #
-            vehicles.append(nvehicle)#
-        except Exception as e:
-            print('waiting for connection... (%s)' % str(e))
-            time.sleep(2)
-    # if --sim is enabled...
-    # vehicle.mode = VehicleMode("GUIDED")
-    vehicles[0].parameters['ARMING_CHECK'] = 1
-    vehicles[0].flush()
 
-    print('connected!')
-
+'''
+API untuk melakukan transfer data dari front-end ke back-end
+'''
 # api transfer data to engine.py
 @app.route("/api/update_data", methods=['POST','PUT'])
 def update_data():
@@ -326,7 +324,9 @@ def update_data():
             print(e)
             return "failed"
 
-# api transfer data from engine.py
+'''
+API untuk melakukan transfer data dari back-end ke front-end
+'''
 @app.route("/api/get_data", methods=['POST','PUT'])
 def get_data():
     global vehicle_dataList
@@ -455,7 +455,9 @@ def upload_mission_text(mission_text, id):
     print(' Upload mission')
     vehicles.get(id).commands.upload()
 
-# upload mission
+'''
+Upload mission to vehicle
+'''
 @app.route("/api/upload_mission", methods=['POST','PUT'])
 def upload_mission():
     global vehicles
@@ -472,7 +474,9 @@ def upload_mission():
             print(e)
             return "failed"
 
-# upload mission
+'''
+Import mission from given file path
+'''
 @app.route("/api/import_mission", methods=['POST','PUT'])
 def import_mission():
     if request.method =='POST' or request.method == 'PUT':
@@ -492,18 +496,6 @@ def import_mission():
             print(e)
             return "failed"
 
-# upload mission
-@app.route("/api/debug_test", methods=['POST','PUT'])
-def debug_test():
-    if request.method =='POST' or request.method == 'PUT':
-        try:
-            vehicle_id = request.json['id']
-            upload_mission_file('C:\Bayu\Mission_Planer_Mission.txt', vehicle_id)
-            return "Upload success"
-        except Exception as e:
-            print(e)
-            return "failed"
-
 # Never cache
 @app.after_request
 def never_cache(response):
@@ -513,9 +505,6 @@ def never_cache(response):
     response.headers['Expires'] = '-1'
     return response
 
-# t2 = Thread(target=connect_to_drone)
-# t2.daemon = True
-# t2.start()
 
 def main():
     app.run(threaded=True, host='127.0.0.1', port=5000)
