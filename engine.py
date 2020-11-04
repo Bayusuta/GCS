@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+#HAI
 from dronekit import connect, VehicleMode, LocationGlobalRelative, Command
 from pymavlink import mavutil
 from queue import Queue
